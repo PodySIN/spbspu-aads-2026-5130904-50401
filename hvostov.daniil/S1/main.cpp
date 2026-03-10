@@ -2,16 +2,20 @@
 #include "list.hpp"
 #include "liter.hpp"
 #include "lciter.hpp"
+#include "utility.hpp"
 
 int main()
 {
-  hvostov::List< int > l;
-  hvostov::Liter< int > it = l.begin();
-  for (size_t i = 0; i < 5; i++) {
-    it = l.insertAfter(it, i);
+  hvostov::List< std::pair< std::string, hvostov::List< size_t > > > list = hvostov::getData(std::cin);
+  hvostov::Liter< std::pair< std::string, hvostov::List< size_t > > > it = list.begin();
+  for (hvostov::Liter< std::pair< std::string, hvostov::List< size_t > > > it = list.begin(); it != list.end(); it++) {
+    std::cout << (*it).first << "\n";
+    hvostov::List< size_t > n = (*it).second;
+    for (hvostov::Liter< size_t > j = n.begin(); j != n.end(); j++) {
+      std::cout << (*j) << " ";
+    }
+    std::cout << "\n";
   }
-  for (hvostov::Liter< int > it = l.begin(); it != l.end(); it++) {
-    std::cout << *it << " ";
-  }
-  std::cout << "\n";
+
+  return 0;
 }

@@ -29,7 +29,7 @@ namespace hvostov {
       LCiter< T > cend() const noexcept;
       LCiter< T > cbegin() const noexcept;
 
-      Liter< T > insertAfter(Liter< T > it, const T val);
+      Liter< T > insertAfter(Liter< T > it, const T& val);
       void clear();
     private:
       Node< T >* fake_;
@@ -41,14 +41,14 @@ namespace hvostov {
 template< class T >
 hvostov::Node< T >* hvostov::List< T >::createFake()
 {
-  fake_ = static_cast< Node< T >* >(::operator new (sizeof(Node< T >*)));
+  fake_ = new Node< T >();
   return fake_;
 }
 
 template< class T >
 void hvostov::List< T >::rmFake() noexcept
 {
-  ::operator delete(fake_);
+  delete fake_;
 }
 
 template< class T >
@@ -64,10 +64,10 @@ hvostov::List< T >::List(const List< T >& list):
   fake_(nullptr)
 {
   createFake();
-  fake_->next = fake_;
-  Node< T >* head = fake_;
-  for (Liter< T > it = list.begin(); it < it.end(); it++) {
-    head = insertAfter(fake_, *it);
+  fake_->next_ = fake_;
+  Liter< T > i = begin();
+  for (Liter< T > it = list.begin(); it != list.end(); it++) {
+    i = insertAfter(i, *it);
   }
 }
 
@@ -93,9 +93,9 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
     return *this;
   }
   clear();
-  Node< T >* head = fake_;
-  for (Liter< T > it = list.begin(); it < it.end(); it++) {
-    head = insertAfter(fake_, *it);
+  Liter< T > i = begin();
+  for (Liter< T > it = list.begin(); it != list.end(); it++) {
+    i = insertAfter(i, *it);
   }
   return *this;
 }
@@ -116,30 +116,31 @@ hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list)
 template< class T >
 hvostov::Liter< T > hvostov::List< T >::begin() const noexcept
 {
-  return { fake_->next_, fake_ };
+  return { fake_->next_ };
 }
 
 template< class T >
 hvostov::Liter< T > hvostov::List< T >::end() const noexcept
 {
-  return { fake_, fake_ };
+  return { fake_ };
 }
 
 template< class T >
-hvostov::Liter< T > hvostov::List< T >::insertAfter(Liter< T > i, const T val)
+hvostov::Liter< T > hvostov::List< T >::insertAfter(Liter< T > it, const T& val)
 {
-  Node< T >* new_node = new Node< T >{ val, i.curr_->next_ };
-  i.curr_->next_ = new_node;
-  return { new_node, fake_ };
+  Node< T >* n = new Node< T >{val, it.curr_->next_};
+  it.curr_->next_ = n;
+  return { n };
 }
 
 template< class T >
 void hvostov::List< T >::clear()
 {
-  while (fake_ != fake_) {
-    Node< T >* tmp = fake_->next_;
-    delete fake_;
-    fake_ = tmp;
+  Node< T >* h = fake_->next_;
+  while (h != fake_) {
+    Node< T >* temp = h->next_;
+    delete h;
+    h = temp;
   }
   fake_->next_ = fake_;
 }

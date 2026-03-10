@@ -14,32 +14,64 @@ namespace hvostov {
   class Liter {
   public:
     Liter() noexcept;
-    Liter(Node< T >* curr, Node< T >* fake) noexcept;
+    Liter(Node< T >* curr) noexcept;
+    Liter(const Liter< T >& liter) noexcept;
+    Liter(Liter< T >&& liter) noexcept;
+    Liter< T >& operator=(const Liter< T >& liter) noexcept;
+    Liter< T >& operator=(Liter< T >&& liter) noexcept;
     Liter< T >& operator++();
     Liter< T > operator++(int);
-    T operator*();
-    T operator->();
-    bool operator==(const Liter< T >& liter);
-    bool operator!=(const Liter< T >& liter);
+    T& operator*() const;
+    T* operator->() const;
+    bool operator==(const Liter< T >& liter) const;
+    bool operator!=(const Liter< T >& liter) const;
     
   private:
     friend class List< T >;
     Node< T >* curr_;
-    Node< T >* fake_;
   };
 }
 
 template< class T >
 hvostov::Liter< T >::Liter() noexcept:
-  curr_(nullptr),
-  fake_(nullptr)
+  curr_(nullptr)
 {}
 
 template< class T >
-hvostov::Liter< T >::Liter(Node< T >* curr, Node< T >* fake) noexcept:
-  curr_(curr),
-  fake_(fake)
+hvostov::Liter< T >::Liter(Node< T >* curr) noexcept:
+  curr_(curr)
 {}
+
+template< class T >
+hvostov::Liter< T >::Liter(const Liter< T >& liter) noexcept:
+  curr_(liter.curr_)
+{}
+
+template< class T >
+hvostov::Liter< T >::Liter(Liter< T >&& liter) noexcept:
+  curr_(liter.curr_)
+{
+  liter.curr_ = nullptr;
+}
+
+template< class T >
+hvostov::Liter< T >& hvostov::Liter< T >::operator=(const Liter< T >& liter) noexcept
+{
+  if (this != &liter) {
+    curr_ = liter.curr_;
+  }
+  return *this;
+}
+
+template< class T >
+hvostov::Liter< T >& hvostov::Liter< T >::operator=(Liter< T >&& liter) noexcept
+{
+  if (this != &liter) {
+    curr_ = liter.curr_;
+    liter.curr_ = nullptr;
+  }
+  return *this;
+}
 
 template< class T >
 hvostov::Liter< T >& hvostov::Liter< T >::operator++()
@@ -57,25 +89,25 @@ hvostov::Liter< T > hvostov::Liter< T >::operator++(int)
 }
 
 template< class T >
-T hvostov::Liter< T >::operator*()
+T& hvostov::Liter< T >::operator*() const
 {
   return curr_->val_;
 }
 
 template< class T >
-T hvostov::Liter< T >::operator->()
+T* hvostov::Liter< T >::operator->() const
 {
-  return curr_->val_;
+  return &(curr_->val_);
 }
 
 template< class T >
-bool hvostov::Liter< T >::operator==(const Liter< T >& liter)
+bool hvostov::Liter< T >::operator==(const Liter< T >& liter) const
 {
   return curr_ == liter.curr_;
 }
 
 template< class T >
-bool hvostov::Liter< T >::operator!=(const Liter< T >& liter)
+bool hvostov::Liter< T >::operator!=(const Liter< T >& liter) const
 {
   return curr_ != liter.curr_;
 }
