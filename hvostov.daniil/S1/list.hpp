@@ -21,12 +21,12 @@ namespace hvostov {
     Liter(Liter< T >&& liter) noexcept;
     Liter< T >& operator=(const Liter< T >& liter) noexcept;
     Liter< T >& operator=(Liter< T >&& liter) noexcept;
-    Liter< T >& operator++();
-    Liter< T > operator++(int);
-    T& operator*() const;
-    T* operator->() const;
-    bool operator==(const Liter< T >& liter) const;
-    bool operator!=(const Liter< T >& liter) const;
+    Liter< T >& operator++() noexcept;
+    Liter< T > operator++(int) noexcept;
+    T& operator*() const noexcept;
+    T* operator->() const noexcept;
+    bool operator==(const Liter< T >& liter) const noexcept;
+    bool operator!=(const Liter< T >& liter) const noexcept;
     
   private:
     friend class List< T >;
@@ -42,12 +42,12 @@ namespace hvostov {
     LCiter(LCiter< T >&& lciter) noexcept;
     LCiter< T >& operator=(const LCiter< T >& lciter) noexcept;
     LCiter< T >& operator=(LCiter< T >&& lciter) noexcept;
-    LCiter< T >& operator++();
-    LCiter< T > operator++(int);
-    const T& operator*() const;
-    const T* operator->() const;
-    bool operator==(const LCiter< T >& lciter) const;
-    bool operator!=(const LCiter< T >& lciter) const;
+    LCiter< T >& operator++() noexcept;
+    LCiter< T > operator++(int) noexcept;
+    const T& operator*() const noexcept;
+    const T* operator->() const noexcept;
+    bool operator==(const LCiter< T >& lciter) const noexcept;
+    bool operator!=(const LCiter< T >& lciter) const noexcept;
     
   private:
     friend class List< T >;
@@ -59,18 +59,21 @@ namespace hvostov {
     public:
       List();
       List(const List< T >& list);
-      List(List< T >&& list);
+      List(List< T >&& list) noexcept;
       ~List();
       List< T >& operator=(const List< T >& list);
-      List< T >& operator=(List< T >&& list);
+      List< T >& operator=(List< T >&& list) noexcept;
 
       Liter< T > begin() const noexcept;
       Liter< T > end() const noexcept;
       LCiter< T > cend() const noexcept;
       LCiter< T > cbegin() const noexcept;
 
-      Liter< T > insertAfter(Liter< T > it, const T& val);
-      void clear();
+      Liter< T > insertAfter(const Liter< T > it, const T& val);
+      Liter< T > pushBack(const T&val);
+      void eraseAfter(const Liter< T > it) noexcept;
+      void clear() noexcept;
+      bool empty() const noexcept;
     private:
       Node< T >* fake_;
       Node< T >* createFake();
@@ -107,12 +110,18 @@ hvostov::List< T >::List(const List< T >& list):
   fake_->next_ = fake_;
   Liter< T > i = begin();
   for (Liter< T > it = list.begin(); it != list.end(); it++) {
-    i = insertAfter(i, *it);
+    try {
+      i = insertAfter(i, *it);
+    } catch (...){
+      clear();
+      rmFake();
+      throw;
+    }
   }
 }
 
 template< class T >
-hvostov::List< T >::List(List< T >&& list):
+hvostov::List< T >::List(List< T >&& list) noexcept:
   fake_(list.fake_)
 {
   list.fake_ = nullptr;
@@ -141,7 +150,7 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
 }
 
 template< class T >
-hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list)
+hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list) noexcept
 {
   if (this == &list) {
     return *this;
@@ -166,7 +175,7 @@ hvostov::Liter< T > hvostov::List< T >::end() const noexcept
 }
 
 template< class T >
-hvostov::Liter< T > hvostov::List< T >::insertAfter(Liter< T > it, const T& val)
+hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T& val)
 {
   Node< T >* n = new Node< T >{val, it.curr_->next_};
   it.curr_->next_ = n;
@@ -174,7 +183,17 @@ hvostov::Liter< T > hvostov::List< T >::insertAfter(Liter< T > it, const T& val)
 }
 
 template< class T >
-void hvostov::List< T >::clear()
+void hvostov::List< T >::eraseAfter(const Liter< T > it) noexcept
+{
+  if (it.curr_->next_ != fake_) {
+    Node< T >* d = it.curr_->next_;
+    it.curr_->next_ = d->next_;
+    delete d;
+  }
+}
+
+template< class T >
+void hvostov::List< T >::clear() noexcept
 {
   Node< T >* h = fake_->next_;
   while (h != fake_) {
@@ -183,6 +202,20 @@ void hvostov::List< T >::clear()
     h = temp;
   }
   fake_->next_ = fake_;
+}
+
+template< class T >
+bool hvostov::List< T >::empty() const noexcept
+{
+  return fake_->next_ == fake_;
+}
+
+template< class T >
+hvostov::Liter< T > hvostov::List< T >::pushBack(const T& val)
+{
+  Liter< T > it = begin();
+  it = insertAfter(it, val);
+  return it;
 }
 
 template< class T >
@@ -227,14 +260,14 @@ hvostov::Liter< T >& hvostov::Liter< T >::operator=(Liter< T >&& liter) noexcept
 }
 
 template< class T >
-hvostov::Liter< T >& hvostov::Liter< T >::operator++()
+hvostov::Liter< T >& hvostov::Liter< T >::operator++() noexcept
 {
   curr_ = curr_->next_;
   return *this;
 }
 
 template< class T >
-hvostov::Liter< T > hvostov::Liter< T >::operator++(int)
+hvostov::Liter< T > hvostov::Liter< T >::operator++(int) noexcept
 {
   Liter< T > temp = *this;
   ++(*this);
@@ -242,25 +275,25 @@ hvostov::Liter< T > hvostov::Liter< T >::operator++(int)
 }
 
 template< class T >
-T& hvostov::Liter< T >::operator*() const
+T& hvostov::Liter< T >::operator*() const noexcept
 {
   return curr_->val_;
 }
 
 template< class T >
-T* hvostov::Liter< T >::operator->() const
+T* hvostov::Liter< T >::operator->() const noexcept
 {
   return &(curr_->val_);
 }
 
 template< class T >
-bool hvostov::Liter< T >::operator==(const Liter< T >& liter) const
+bool hvostov::Liter< T >::operator==(const Liter< T >& liter) const noexcept
 {
   return curr_ == liter.curr_;
 }
 
 template< class T >
-bool hvostov::Liter< T >::operator!=(const Liter< T >& liter) const
+bool hvostov::Liter< T >::operator!=(const Liter< T >& liter) const noexcept
 {
   return curr_ != liter.curr_;
 }
@@ -307,14 +340,14 @@ hvostov::LCiter< T >& hvostov::LCiter< T >::operator=(LCiter< T >&& lciter) noex
 }
 
 template< class T >
-hvostov::LCiter< T >& hvostov::LCiter< T >::operator++()
+hvostov::LCiter< T >& hvostov::LCiter< T >::operator++() noexcept
 {
   curr_ = curr_->next_;
   return *this;
 }
 
 template< class T >
-hvostov::LCiter< T > hvostov::LCiter< T >::operator++(int)
+hvostov::LCiter< T > hvostov::LCiter< T >::operator++(int) noexcept
 {
   LCiter< T > temp = *this;
   ++(*this);
@@ -322,25 +355,25 @@ hvostov::LCiter< T > hvostov::LCiter< T >::operator++(int)
 }
 
 template< class T >
-const T& hvostov::LCiter< T >::operator*() const
+const T& hvostov::LCiter< T >::operator*() const noexcept
 {
   return curr_->val_;
 }
 
 template< class T >
-const T* hvostov::LCiter< T >::operator->() const
+const T* hvostov::LCiter< T >::operator->() const noexcept
 {
   return &(curr_->val_);
 }
 
 template< class T >
-bool hvostov::LCiter< T >::operator==(const LCiter< T >& lciter) const
+bool hvostov::LCiter< T >::operator==(const LCiter< T >& lciter) const noexcept
 {
   return curr_ == lciter.curr_;
 }
 
 template< class T >
-bool hvostov::LCiter< T >::operator!=(const LCiter< T >& lciter) const
+bool hvostov::LCiter< T >::operator!=(const LCiter< T >& lciter) const noexcept
 {
   return curr_ != lciter.curr_;
 }
