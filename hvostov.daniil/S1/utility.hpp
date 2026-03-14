@@ -9,6 +9,7 @@ namespace hvostov {
   void printInfo(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list);
   void printResult(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list);
   bool isCorrectNumber(const std::string& str);
+  size_t sumNumbersWithOverflow(size_t a, size_t b);
 }
 
 #endif

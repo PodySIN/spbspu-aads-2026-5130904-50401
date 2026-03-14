@@ -5,19 +5,19 @@ BOOST_AUTO_TEST_SUITE(iter_suite)
 
 BOOST_AUTO_TEST_CASE(test_begin)
 {
-  hvostov::List< size_t > list;
+  hvostov::List< int > list;
   list.pushBack(6);
   list.pushBack(7);
-  hvostov::Liter< size_t > it = list.begin();
+  hvostov::Liter< int > it = list.begin();
   BOOST_CHECK(*it == 6);
 }
 
 BOOST_AUTO_TEST_CASE(test_end)
 {
-  hvostov::List< size_t > list;
+  hvostov::List< int > list;
   list.pushBack(6);
   list.pushBack(7);
-  hvostov::Liter< size_t > it = list.end();
+  hvostov::Liter< int > it = list.end();
   BOOST_CHECK(*it == 7);
 }
 

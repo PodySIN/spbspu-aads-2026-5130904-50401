@@ -25,6 +25,15 @@ size_t hvostov::fromStringToNumber(const std::string& str)
   return result;
 }
 
+size_t hvostov::sumNumbersWithOverflow(size_t a, size_t b)
+{
+  size_t max = std::numeric_limits< size_t >::max();
+  if (a <= max - b) {
+    return a + b;
+  }
+  throw std::overflow_error("Sum is overflow!");
+}
+
 hvostov::List< std::pair< std::string, hvostov::List< size_t > > > hvostov::getData(std::istream& in)
 {
   List< std::pair< std::string, List< size_t > > > list;
@@ -115,7 +124,7 @@ void hvostov::printResult(std::ostream& out, const List< std::pair< std::string,
       if (*(*(it))) {
         size_t value = *(*(it));
         try {
-          sum += value;
+          sum = sumNumbersWithOverflow(sum, value);
         } catch (const std::overflow_error &e) {
           throw;
         }
