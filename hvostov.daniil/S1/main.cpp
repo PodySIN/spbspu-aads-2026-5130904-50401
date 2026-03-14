@@ -8,8 +8,8 @@ int main()
   try {
     list = hvostov::getData(std::cin);
   } catch (const std::overflow_error& e) {
-    hvostov::printInfo(std::cout, list);
     std::cerr << e.what() << "\n";
+    hvostov::printInfo(std::cout, list);
     return 1;
   }
   if (list.empty()) {
