@@ -8,7 +8,7 @@ bool hvostov::isCorrectNumber(const std::string& str)
   std::string max_string = std::to_string(std::numeric_limits< size_t >::max());
   if (str.size() != max_string.size()) {
     return str.size() < max_string.size();
-  } 
+  }
   for (size_t i = 0; i < str.size(); i++) {
     if (str[i] > max_string[i]) return false;
     if (str[i] < max_string[i]) return true;
