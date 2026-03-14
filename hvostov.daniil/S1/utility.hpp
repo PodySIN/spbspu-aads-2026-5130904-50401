@@ -7,6 +7,7 @@ namespace hvostov {
   List< std::pair< std::string, List< size_t > > > getData(std::istream& in);
   size_t fromStringToNumber(const std::string& str);
   void printResult(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list);
+  bool isCorrectNumber(const std::string& str);
 }
 
 #endif

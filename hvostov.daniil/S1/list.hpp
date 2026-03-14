@@ -108,15 +108,8 @@ hvostov::List< T >::List(const List< T >& list):
 {
   createFake();
   fake_->next_ = fake_;
-  Liter< T > i = begin();
   for (Liter< T > it = list.begin(); it != list.end(); it++) {
-    try {
-      i = insertAfter(i, *it);
-    } catch (...){
-      clear();
-      rmFake();
-      throw;
-    }
+    pushBack(*it);
   }
 }
 
@@ -141,9 +134,8 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
     return *this;
   }
   clear();
-  Liter< T > i = begin();
   for (Liter< T > it = list.begin(); it != list.end(); it++) {
-    i = insertAfter(i, *it);
+    pushBack(*it);
   }
   return *this;
 }
@@ -194,6 +186,9 @@ void hvostov::List< T >::eraseAfter(const Liter< T > it) noexcept
 template< class T >
 void hvostov::List< T >::clear() noexcept
 {
+  if (fake_ == nullptr) {
+    return;
+  }
   Node< T >* h = fake_->next_;
   while (h != fake_) {
     Node< T >* temp = h->next_;

@@ -1,6 +1,20 @@
 #include <iostream>
+#include <limits>
 #include "utility.hpp"
 #include "list.hpp"
+
+bool hvostov::isCorrectNumber(const std::string& str)
+{
+  std::string max_string = std::to_string(std::numeric_limits< size_t >::max());
+  if (str.size() != max_string.size()) {
+    return str.size() < max_string.size();
+  } 
+  for (size_t i = 0; i < str.size(); i++) {
+    if (str[i] > max_string[i]) return false;
+    if (str[i] < max_string[i]) return true;
+  }
+  return true;
+}
 
 size_t hvostov::fromStringToNumber(const std::string& str)
 {
@@ -31,6 +45,10 @@ hvostov::List< std::pair< std::string, hvostov::List< size_t > > > hvostov::getD
     Liter< size_t > it = numbers.begin();
     std::string number;
     while (in >> number) {
+      if (!isCorrectNumber(number)) {
+        list_it = list.insertAfter(list_it, { name, numbers });
+        throw std::overflow_error("Too BIG number!");
+      }
       it = numbers.insertAfter(it, hvostov::fromStringToNumber(number));
       next = in.peek();
       if (next == '\n' || next == EOF) {
