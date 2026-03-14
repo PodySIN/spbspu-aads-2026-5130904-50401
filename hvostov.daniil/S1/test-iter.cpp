@@ -18,7 +18,9 @@ BOOST_AUTO_TEST_CASE(test_end)
   list.pushBack(6);
   list.pushBack(7);
   hvostov::Liter< int > it = list.end();
-  BOOST_CHECK(*it == 7);
+  BOOST_CHECK(*it != 7);
+  it++;
+  BOOST_CHECK(*it == 6);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

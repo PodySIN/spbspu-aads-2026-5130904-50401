@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE(test_push_element)
   hvostov::List< int > list;
   list.pushBack(6);
   BOOST_CHECK(!list.empty());
-  BOOST_CHECK(*(list.end()) == 6);
+  BOOST_CHECK(*(list.begin()) == 6);
 }
 
 BOOST_AUTO_TEST_CASE(test_insert_element)
@@ -33,11 +33,10 @@ BOOST_AUTO_TEST_CASE(test_insert_element)
   BOOST_CHECK(*it == 7);
   it = list.end();
   list.insertAfter(it, 8);
-  BOOST_CHECK(*it == 7);
   it++;
   BOOST_CHECK(*it == 8);
   it++;
-  BOOST_CHECK(it == list.end());
+  BOOST_CHECK(*it == 6);
 }
 
 BOOST_AUTO_TEST_CASE(test_erase_element)
