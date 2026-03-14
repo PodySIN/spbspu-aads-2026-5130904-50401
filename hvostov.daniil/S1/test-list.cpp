@@ -12,14 +12,14 @@ BOOST_AUTO_TEST_CASE(test_push_element)
 {
   hvostov::List< int > list;
   list.pushBack(6);
-  BOOST_CHECK(list.empty());
+  BOOST_CHECK(!list.empty());
   BOOST_CHECK(*(list.end()) == 6);
 }
 
 BOOST_AUTO_TEST_CASE(test_insert_element)
 {
   hvostov::List< int > list;
-  hvostov::Liter< T > it = list.begin();
+  hvostov::Liter< int > it = list.begin();
   it = list.insertAfter(it, 6);
   BOOST_CHECK(*it == 6);
   it = list.insertAfter(it, 7);
