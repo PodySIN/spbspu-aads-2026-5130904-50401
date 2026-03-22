@@ -15,11 +15,11 @@ namespace hvostov {
       Stack< T >& operator=(Stack< T >&& stack) noexcept;
 
       void drop() noexcept;
-      void push(T rhs);
+      void push(const T& rhs);
       void clear() noexcept;
       bool empty() const noexcept;
-      T& top() noexcept;
-      const T& top() const noexcept;
+      T& top();
+      const T& top() const;
     private:
       List< T > list_;
   };
@@ -67,7 +67,7 @@ void hvostov::Stack< T >::drop() noexcept
 }
 
 template< class T >
-void hvostov::Stack< T >::push(T rhs)
+void hvostov::Stack< T >::push(const T& rhs)
 {
   list_.insertAfter(list_.end(), rhs);
 }
@@ -85,13 +85,13 @@ bool hvostov::Stack< T >::empty() const noexcept
 }
 
 template< class T >
-T& hvostov::Stack< T >::top() noexcept
+T& hvostov::Stack< T >::top()
 {
   return *(list_.begin());
 }
 
 template< class T >
-const T& hvostov::Stack< T >::top() const noexcept
+const T& hvostov::Stack< T >::top() const
 {
   return *(list_.begin());
 }
