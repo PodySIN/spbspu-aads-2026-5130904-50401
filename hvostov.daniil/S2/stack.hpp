@@ -9,20 +9,91 @@ namespace hvostov {
     public:
       Stack();
       Stack(const Stack< T >& stack);
-      Stack(Stack< T >&& stack);
-      ~Stack();
+      Stack(Stack< T >&& stack) noexcept;
+      ~Stack() = default;
       Stack< T >& operator=(const Stack< T >& stack);
       Stack< T >& operator=(Stack< T >&& stack) noexcept;
 
-      void pop();
+      void drop() noexcept;
       void push(T rhs);
-      void clear();
-      bool empty();
-      T drop();
+      void clear() noexcept;
+      bool empty() const noexcept;
+      T& top() noexcept;
+      const T& top() const noexcept;
     private:
       List< T > list_;
-      Liter< T > tail_;
   };
+}
+
+template< class T >
+hvostov::Stack< T >::Stack():
+  list_()
+{}
+
+template< class T >
+hvostov::Stack< T >::Stack(const Stack< T >& stack):
+  list_(stack.list_)
+{}
+
+template< class T >
+hvostov::Stack< T >::Stack(Stack< T >&& stack) noexcept:
+  list_(std::move(stack.list_))
+{}
+
+template< class T >
+hvostov::Stack< T >& hvostov::Stack< T >::operator=(const Stack< T >& stack)
+{
+  if (this == &stack) {
+    return *this;
+  }
+  list_ = stack.list_;
+  return *this;
+}
+
+template< class T >
+hvostov::Stack< T >& hvostov::Stack< T >::operator=(Stack< T >&& stack) noexcept
+{
+  if (this == &stack) {
+    return *this;
+  }
+  list_ = std::move(stack.list_);
+  return *this;
+}
+
+template< class T >
+void hvostov::Stack< T >::drop() noexcept
+{
+  list_.eraseAfter(list_.end());
+}
+
+template< class T >
+void hvostov::Stack< T >::push(T rhs)
+{
+  list_.insertAfter(list_.end(), rhs);
+}
+
+template< class T >
+void hvostov::Stack< T >::clear() noexcept
+{
+  list_.clear();
+}
+
+template< class T >
+bool hvostov::Stack< T >::empty() const noexcept
+{
+  return list_.empty();
+}
+
+template< class T >
+T& hvostov::Stack< T >::top() noexcept
+{
+  return *(list_.begin());
+}
+
+template< class T >
+const T& hvostov::Stack< T >::top() const noexcept
+{
+  return *(list_.begin());
 }
 
 #endif
