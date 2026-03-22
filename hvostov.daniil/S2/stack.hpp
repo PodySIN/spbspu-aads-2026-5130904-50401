@@ -13,14 +13,15 @@ namespace hvostov {
       ~Stack();
       Stack< T >& operator=(const Stack< T >& stack);
       Stack< T >& operator=(Stack< T >&& stack) noexcept;
-      
+
       void pop();
       void push(T rhs);
       void clear();
       bool empty();
       T drop();
     private:
-      List< T > list;
+      List< T > list_;
+      Liter< T > tail_;
   };
 }
 
