@@ -1,6 +1,5 @@
 #include "arifmetic.hpp"
 #include "arifmetic_operations.hpp"
-
 #include <iostream>
 #include <cctype>
 #include <stdexcept>
@@ -93,7 +92,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
         } else {
           throw std::logic_error("Mismatched parentheses!");
         }
-      } 
+      }
     } else {
       throw std::logic_error("Unsupported operation: " + curr + "!");
     }
