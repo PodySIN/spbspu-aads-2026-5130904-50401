@@ -2,6 +2,7 @@
 #define stack_HPP
 #include <cstddef>
 #include "list.hpp"
+#include <utility>
 
 namespace hvostov {
   template< class T >
@@ -14,7 +15,7 @@ namespace hvostov {
       Stack< T >& operator=(const Stack< T >& stack);
       Stack< T >& operator=(Stack< T >&& stack) noexcept;
 
-      void drop() noexcept;
+      T drop();
       void push(const T& rhs);
       void clear() noexcept;
       bool empty() const noexcept;
@@ -61,9 +62,11 @@ hvostov::Stack< T >& hvostov::Stack< T >::operator=(Stack< T >&& stack) noexcept
 }
 
 template< class T >
-void hvostov::Stack< T >::drop() noexcept
+T hvostov::Stack< T >::drop()
 {
+  T t = top();
   list_.eraseAfter(list_.end());
+  return t;
 }
 
 template< class T >

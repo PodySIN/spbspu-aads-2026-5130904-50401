@@ -2,6 +2,7 @@
 #define QUEUE_HPP
 #include <cstddef>
 #include "list.hpp"
+#include <utility>
 
 namespace hvostov {
   template< class T >
@@ -14,7 +15,7 @@ namespace hvostov {
       Queue< T >& operator=(const Queue< T >& queue);
       Queue< T >& operator=(Queue< T >&& queue) noexcept;
 
-      void drop() noexcept;
+      T drop();
       void push(T rhs);
       void clear() noexcept;
       bool empty() const noexcept;
@@ -71,12 +72,14 @@ hvostov::Queue< T >& hvostov::Queue< T >::operator=(Queue< T >&& queue) noexcept
 }
 
 template< class T >
-void hvostov::Queue< T >::drop() noexcept
+T hvostov::Queue< T >::drop()
 {
+  T res = front();
   list_.eraseAfter(list_.end());
   if (empty()) {
     tail_ = list_.begin();
   }
+  return res;
 }
 
 template< class T >
