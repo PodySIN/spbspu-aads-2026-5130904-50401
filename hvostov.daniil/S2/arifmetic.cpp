@@ -170,7 +170,6 @@ void hvostov::printResult(Stack< long long int > result)
   if (result.empty()) {
     return;
   }
-  
   bool first = true;
   while (!result.empty()) {
     if (first) {
