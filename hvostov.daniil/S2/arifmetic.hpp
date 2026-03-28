@@ -10,10 +10,12 @@
 namespace hvostov {
   Queue< std::string > getInfix(const std::string& expression);
   bool isSupportedOperand(const std::string& operand);
+  bool isNumber(const std::string& num);
   size_t getPriority(const std::string& operation);
   Queue< std::string > getPostfix(Queue< std::string >& infix);
-  int evaluatePostfix(Queue< std::string >& postfix);
+  long long int evaluatePostfix(Queue< std::string >& postfix);
   void printResult(std::istream& in);
+  long long int calculate(long long int left, const std::string& operation, long long int right);
 }
 
 #endif

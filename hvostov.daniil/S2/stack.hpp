@@ -21,6 +21,7 @@ namespace hvostov {
       bool empty() const noexcept;
       T& top();
       const T& top() const;
+      size_t getSize() const noexcept;
     private:
       List< T > list_;
   };
@@ -97,6 +98,12 @@ template< class T >
 const T& hvostov::Stack< T >::top() const
 {
   return *(list_.begin());
+}
+
+template< class T >
+size_t hvostov::Stack< T >::getSize() const noexcept
+{
+  return list_.getSize();
 }
 
 #endif

@@ -1,4 +1,9 @@
 #include "arifmetic.hpp"
+#include "arifmetic_operations.hpp"
+
+#include <iostream>
+#include <cctype>
+#include <stdexcept>
 
 bool hvostov::isSupportedOperand(const std::string& operand)
 {
@@ -9,6 +14,23 @@ bool hvostov::isSupportedOperand(const std::string& operand)
     }
   }
   return false;
+}
+
+bool hvostov::isNumber(const std::string& num)
+{
+  if (num.empty()) {
+    return false;
+  }
+  for (size_t i = 0; i < num.length(); i++) {
+    if (!isdigit(num[i])) {
+      if (i == 0 && num[i] == '-') {
+        continue;
+      } else {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 hvostov::Queue< std::string > hvostov::getInfix(const std::string& expression)
@@ -47,7 +69,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
   Queue< std::string > posfix;
   while (!infix.empty()) {
     std::string curr = infix.drop();
-    if (isdigit(curr[0])) {
+    if (isNumber(curr)) {
       posfix.push(curr);
     } else if (isSupportedOperand(curr)) {
       size_t priority = getPriority(curr);
@@ -70,7 +92,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
         }
       } 
     } else {
-      throw std::logic_error("Wrong input!");
+      throw std::logic_error("Unsopported operation: " + curr + "!");
     }
   }
   while (!operations.empty()) {
@@ -79,11 +101,66 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
   return posfix;
 }
 
-int hvostov::evaluatePostfix(Queue< std::string >& postfix)
+long long int hvostov::calculate(long long int left, const std::string& operation, long long int right)
 {
+  if (operation == "+") {
+    return addWithOverflowCheck(left, right);
+  } else if (operation == "-") {
+    return subtractWithOverflowCheck(left, right);
+  } else if (operation == "*") {
+    return multiplyWithOverflowCheck(left, right);
+  } else if (operation == "/") {
+    return divideWithOverflowCheck(left, right);
+  } else if (operation == "%") {
+    return moduloWithOverflowCheck(left, right);
+  } else if (operation == "<<") {
+    return shiftLeftWithOverflowCheck(left, right);
+  } else {
+    throw std::logic_error("Unknown operation: " + operation);
+  }
+}
+
+long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
+{
+  Stack< long long int > values;
+  while (!postfix.empty()) {
+    std::string token = postfix.drop();
+    if (isNumber(token)) {
+      values.push(std::stoll(token));
+    } else {
+      long long int right = values.drop();
+      long long int left = values.drop();
+      if (values.getSize() < 2) {
+        throw std::logic_error("Too few numbers!");
+      }
+      values.push(calculate(left, token, right));
+    }
+  }
+  if (values.getSize() != 1) {
+    throw std::logic_error("Too few operands!");
+  }
+  return values.drop();
 }
 
 void hvostov::printResult(std::istream& in)
 {
-
+  std::string line;
+  bool f = true;
+  while (std::getline(in, line)) {
+    if (line.empty()) {
+      continue;
+    }
+    try {
+      Queue< std::string > infix = getInfix(line);
+      Queue< std::string > postfix = getPostfix(infix);
+      long long int result = evaluatePostfix(postfix);
+      if (f) {
+        std::cout << result;
+        f = false;
+      }
+      std::cout << " " << result;
+    } catch (const std::exception& e) {
+      std::cerr << e.what() << "\n";
+    }
+  }
 }

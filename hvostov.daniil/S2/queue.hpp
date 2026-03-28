@@ -23,6 +23,7 @@ namespace hvostov {
       const T& front() const;
       T& back();
       const T& back() const;
+      size_t getSize() const noexcept;
     private:
       List< T > list_;
       Liter< T > tail_;
@@ -123,6 +124,12 @@ template< class T >
 const T& hvostov::Queue< T >::back() const
 {
   return *tail_;
+}
+
+template< class T >
+size_t hvostov::Queue< T >::getSize() const noexcept
+{
+  return list_.getSize();
 }
 
 #endif

@@ -73,10 +73,12 @@ namespace hvostov {
       void eraseAfter(const Liter< T > it) noexcept;
       void clear() noexcept;
       bool empty() const noexcept;
+      size_t getSize() const noexcept;
     private:
       Node< T >* fake_;
       Node< T >* createFake();
       void rmFake() noexcept;
+      size_t size_;
   };
 }
 
@@ -95,7 +97,8 @@ void hvostov::List< T >::rmFake() noexcept
 
 template< class T >
 hvostov::List< T >::List():
-  fake_(nullptr)
+  fake_(nullptr),
+  size_(0)
 {
   createFake();
   fake_->next_ = fake_;
@@ -103,7 +106,8 @@ hvostov::List< T >::List():
 
 template< class T >
 hvostov::List< T >::List(const List< T >& list):
-  fake_(nullptr)
+  fake_(nullptr),
+  size_(list.size_)
 {
   createFake();
   fake_->next_ = fake_;
@@ -115,7 +119,8 @@ hvostov::List< T >::List(const List< T >& list):
 
 template< class T >
 hvostov::List< T >::List(List< T >&& list) noexcept:
-  fake_(list.fake_)
+  fake_(list.fake_),
+  size_(list.size_)
 {
   list.fake_ = nullptr;
 }
@@ -138,6 +143,7 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
   for (Liter< T > it = list.begin(); it != list.end(); it++) {
     mit = insertAfter(mit, *it);
   }
+  size_ = list.size_;
   return *this;
 }
 
@@ -151,6 +157,7 @@ hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list) noexcept
   rmFake();
   fake_ = list.fake_;
   list.fake_ = nullptr;
+  size_ = list.size_;
   return *this;
 }
 
@@ -171,6 +178,7 @@ hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T
 {
   Node< T >* n = new Node< T >{val, it.curr_->next_};
   it.curr_->next_ = n;
+  size_++;
   return { n };
 }
 
@@ -180,6 +188,7 @@ void hvostov::List< T >::eraseAfter(const Liter< T > it) noexcept
   if (it.curr_->next_ != fake_) {
     Node< T >* d = it.curr_->next_;
     it.curr_->next_ = d->next_;
+    size_--;
     delete d;
   }
 }
@@ -196,7 +205,14 @@ void hvostov::List< T >::clear() noexcept
     delete h;
     h = temp;
   }
+  size_ = 0;
   fake_->next_ = fake_;
+}
+
+template< class T >
+size_t hvostov::List< T >::getSize() const noexcept
+{
+  return size_;
 }
 
 template< class T >
