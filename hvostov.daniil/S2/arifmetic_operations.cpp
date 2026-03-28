@@ -58,14 +58,19 @@ long long int hvostov::shiftLeftWithOverflowCheck(long long int left, long long 
   if (right < 0) {
     throw std::logic_error("Negative shift amount!");
   }
-  if (right >= static_cast<long long int>(sizeof(long long int) * 8)) {
-    throw std::overflow_error("Shift overflow!");
+  int bitWidth = sizeof(long long int) * CHAR_BIT;
+  if (right >= bitWidth) {
+    throw std::overflow_error("Shift overflow: shift amount exceeds bit width!");
   }
-  if (left != 0 && right > 0) {
-    long long int maxShift = (left > 0) ? 
-                             (LLMAX >> right) : 
-                             (LLMIN >> right);
-    if (left > maxShift || left < -maxShift - 1) {
+  if (left == 0) {
+    return 0;
+  }
+  if (left > 0) {
+    if (left > (LLMAX >> right)) {
+      throw std::overflow_error("Left shift overflow!");
+    }
+  } else if (left < 0) {
+    if (left < (LLMIN >> right)) {
       throw std::overflow_error("Left shift overflow!");
     }
   }

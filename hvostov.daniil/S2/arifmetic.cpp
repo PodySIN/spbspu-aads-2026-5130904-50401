@@ -18,7 +18,7 @@ bool hvostov::isSupportedOperand(const std::string& operand)
 
 bool hvostov::isNumber(const std::string& num)
 {
-  if (num.empty()) {
+  if (num.empty() || num == "-") {
     return false;
   }
   for (size_t i = 0; i < num.length(); i++) {
@@ -39,8 +39,10 @@ hvostov::Queue< std::string > hvostov::getInfix(const std::string& expression)
   std::string element;
   for (size_t i = 0; i < expression.length(); i++) {
     if (expression[i] == ' ') {
-      infix.push(element);
-      element.clear();
+      if (!element.empty()) {
+        infix.push(element);
+        element.clear();
+      }
     } else {
       element.push_back(expression[i]);
     }
@@ -79,6 +81,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
             (getPriority(operations.top()) >= priority)) {
           posfix.push(operations.drop());
         }
+        operations.push(curr);
       } else if (curr == "(") {
         operations.push(curr);
       } else if (curr == ")") {
@@ -92,7 +95,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
         }
       } 
     } else {
-      throw std::logic_error("Unsopported operation: " + curr + "!");
+      throw std::logic_error("Unsupported operation: " + curr + "!");
     }
   }
   while (!operations.empty()) {
@@ -128,11 +131,11 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
     if (isNumber(token)) {
       values.push(std::stoll(token));
     } else {
-      long long int right = values.drop();
-      long long int left = values.drop();
       if (values.getSize() < 2) {
         throw std::logic_error("Too few numbers!");
       }
+      long long int right = values.drop();
+      long long int left = values.drop();
       values.push(calculate(left, token, right));
     }
   }
@@ -142,10 +145,10 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
   return values.drop();
 }
 
-void hvostov::printResult(std::istream& in)
+hvostov::Stack< long long int > hvostov::getResult(std::istream& in)
 {
+  Stack< long long int > results;
   std::string line;
-  bool f = true;
   while (std::getline(in, line)) {
     if (line.empty()) {
       continue;
@@ -154,13 +157,28 @@ void hvostov::printResult(std::istream& in)
       Queue< std::string > infix = getInfix(line);
       Queue< std::string > postfix = getPostfix(infix);
       long long int result = evaluatePostfix(postfix);
-      if (f) {
-        std::cout << result;
-        f = false;
-      }
-      std::cout << " " << result;
+      results.push(result);
     } catch (const std::exception& e) {
       std::cerr << e.what() << "\n";
     }
   }
+  return results;
+}
+
+void hvostov::printResult(Stack< long long int > result)
+{
+  if (result.empty()) {
+    return;
+  }
+  
+  bool first = true;
+  while (!result.empty()) {
+    if (first) {
+      std::cout << result.drop();
+      first = false;
+    } else {
+      std::cout << " " << result.drop();
+    }
+  }
+  std::cout << "\n";
 }
