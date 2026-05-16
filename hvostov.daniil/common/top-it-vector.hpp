@@ -6,7 +6,7 @@
 #include <initializer_list>
 #include <stdexcept>
 
-namespace topit {
+namespace hvostov {
   template < class T >
   class Vector {
   public:
@@ -69,7 +69,7 @@ namespace topit {
 }
 
 template < class T >
-topit::Vector< T >::Vector(std::initializer_list< T > il) :
+hvostov::Vector< T >::Vector(std::initializer_list< T > il) :
   Vector(il.size())
 {
   size_t i = 0;
@@ -79,7 +79,7 @@ topit::Vector< T >::Vector(std::initializer_list< T > il) :
 }
 
 template < class T >
-void topit::Vector< T >::reserve(size_t k)
+void hvostov::Vector< T >::reserve(size_t k)
 {
   if (k == capacity_) {
     return;
@@ -104,13 +104,13 @@ void topit::Vector< T >::reserve(size_t k)
 }
 
 template < class T >
-void topit::Vector< T >::shrinkToFit()
+void hvostov::Vector< T >::shrinkToFit()
 {
   reserve(size_);
 }
 
 template < class T >
-topit::Vector< T >::Vector(size_t size) :
+hvostov::Vector< T >::Vector(size_t size) :
   data_(size ? new T[size] : nullptr),
   size_(size),
   capacity_(size)
@@ -118,7 +118,7 @@ topit::Vector< T >::Vector(size_t size) :
 }
 
 template < class T >
-topit::Vector< T >::Vector(size_t size, const T* arr) :
+hvostov::Vector< T >::Vector(size_t size, const T* arr) :
   Vector(size)
 {
   for (size_t i = 0; i < size; i++) {
@@ -132,7 +132,7 @@ topit::Vector< T >::Vector(size_t size, const T* arr) :
 }
 
 template < class T >
-topit::Vector< T >::Vector(size_t size, const T& init) :
+hvostov::Vector< T >::Vector(size_t size, const T& init) :
   Vector(size)
 {
   for (size_t i = 0; i < size; i++) {
@@ -146,7 +146,7 @@ topit::Vector< T >::Vector(size_t size, const T& init) :
 }
 
 template < class T >
-topit::Vector< T >::~Vector()
+hvostov::Vector< T >::~Vector()
 {
   for (size_t i = 0; i < size_; i++) {
     data_[i].~T();
@@ -155,7 +155,7 @@ topit::Vector< T >::~Vector()
 }
 
 template < class T >
-void topit::Vector< T >::insert(size_t pos, const T& v)
+void hvostov::Vector< T >::insert(size_t pos, const T& v)
 {
   if (pos > size_) {
     throw std::out_of_range("Insert error! Insert position > size of vector!");
@@ -173,7 +173,7 @@ void topit::Vector< T >::insert(size_t pos, const T& v)
 }
 
 template < class T >
-void topit::Vector< T >::insert(size_t pos, const Vector< T >& rhs, size_t start, size_t end)
+void hvostov::Vector< T >::insert(size_t pos, const Vector< T >& rhs, size_t start, size_t end)
 {
   if (pos > size_) {
     throw std::out_of_range("Insert error: position > size");
@@ -197,7 +197,7 @@ void topit::Vector< T >::insert(size_t pos, const Vector< T >& rhs, size_t start
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::insert(Iterator< T > pos, const T& val)
+hvostov::Iterator< T > hvostov::Vector< T >::insert(Iterator< T > pos, const T& val)
 {
   size_t index = pos - begin();
   insert(index, val);
@@ -205,7 +205,7 @@ topit::Iterator< T > topit::Vector< T >::insert(Iterator< T > pos, const T& val)
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::insert(Iterator< T > pos, Iterator< T > first, Iterator< T > last)
+hvostov::Iterator< T > hvostov::Vector< T >::insert(Iterator< T > pos, Iterator< T > first, Iterator< T > last)
 {
   size_t index = pos - begin();
   size_t count = last - first;
@@ -235,7 +235,7 @@ topit::Iterator< T > topit::Vector< T >::insert(Iterator< T > pos, Iterator< T >
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::erase(Iterator< T > pos)
+hvostov::Iterator< T > hvostov::Vector< T >::erase(Iterator< T > pos)
 {
   size_t index = pos - begin();
   erase(index);
@@ -243,7 +243,7 @@ topit::Iterator< T > topit::Vector< T >::erase(Iterator< T > pos)
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::erase(Iterator< T > first, Iterator< T > last)
+hvostov::Iterator< T > hvostov::Vector< T >::erase(Iterator< T > first, Iterator< T > last)
 {
   size_t start = first - begin();
   size_t end = last - begin();
@@ -252,7 +252,7 @@ topit::Iterator< T > topit::Vector< T >::erase(Iterator< T > first, Iterator< T 
 }
 
 template < class T >
-void topit::Vector< T >::erase(size_t pos)
+void hvostov::Vector< T >::erase(size_t pos)
 {
   if (pos >= size_) {
     throw std::out_of_range("Erase error: position >= size");
@@ -267,7 +267,7 @@ void topit::Vector< T >::erase(size_t pos)
 }
 
 template < class T >
-void topit::Vector< T >::erase(size_t start, size_t end)
+void hvostov::Vector< T >::erase(size_t start, size_t end)
 {
   if (start > size_ || end > size_ || start > end) {
     throw std::out_of_range("Erase error: invalid range");
@@ -288,7 +288,7 @@ void topit::Vector< T >::erase(size_t start, size_t end)
 }
 
 template < class T >
-topit::Vector< T >::Vector() :
+hvostov::Vector< T >::Vector() :
   data_(nullptr),
   size_(0),
   capacity_(0)
@@ -296,7 +296,7 @@ topit::Vector< T >::Vector() :
 }
 
 template < class T >
-topit::Vector< T >::Vector(const Vector< T >& rhs) :
+hvostov::Vector< T >::Vector(const Vector< T >& rhs) :
   Vector(rhs.getSize())
 {
   for (size_t i = 0; i < rhs.getSize(); i++) {
@@ -305,7 +305,7 @@ topit::Vector< T >::Vector(const Vector< T >& rhs) :
 }
 
 template < class T >
-topit::Vector< T >::Vector(Vector< T >&& rhs) noexcept :
+hvostov::Vector< T >::Vector(Vector< T >&& rhs) noexcept :
   data_(rhs.data_),
   size_(rhs.size_),
   capacity_(rhs.capacity_)
@@ -314,7 +314,7 @@ topit::Vector< T >::Vector(Vector< T >&& rhs) noexcept :
 }
 
 template < class T >
-void topit::Vector< T >::swap(Vector< T >& rhs) noexcept
+void hvostov::Vector< T >::swap(Vector< T >& rhs) noexcept
 {
   std::swap(data_, rhs.data_);
   std::swap(size_, rhs.size_);
@@ -322,7 +322,7 @@ void topit::Vector< T >::swap(Vector< T >& rhs) noexcept
 }
 
 template < class T >
-topit::Vector< T >& topit::Vector< T >::operator=(const Vector< T >& rhs)
+hvostov::Vector< T >& hvostov::Vector< T >::operator=(const Vector< T >& rhs)
 {
   Vector< T > cpy{rhs};
   swap(cpy);
@@ -330,7 +330,7 @@ topit::Vector< T >& topit::Vector< T >::operator=(const Vector< T >& rhs)
 }
 
 template < class T >
-topit::Vector< T >& topit::Vector< T >::operator=(Vector< T >&& rhs)
+hvostov::Vector< T >& hvostov::Vector< T >::operator=(Vector< T >&& rhs)
 {
   if (this == std::addressof(rhs)) {
     return *this;
@@ -341,61 +341,61 @@ topit::Vector< T >& topit::Vector< T >::operator=(Vector< T >&& rhs)
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::begin()
+hvostov::Iterator< T > hvostov::Vector< T >::begin()
 {
   return Iterator< T >{data_};
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::end()
+hvostov::Iterator< T > hvostov::Vector< T >::end()
 {
   return Iterator< T >{data_ + size_};
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::begin() const
+hvostov::Iterator< T > hvostov::Vector< T >::begin() const
 {
   return Iterator< T >{data_};
 }
 
 template < class T >
-topit::Iterator< T > topit::Vector< T >::end() const
+hvostov::Iterator< T > hvostov::Vector< T >::end() const
 {
   return Iterator< T >{data_ + size_};
 }
 
 template < class T >
-topit::CIterator< T > topit::Vector< T >::cbegin() const
+hvostov::CIterator< T > hvostov::Vector< T >::cbegin() const
 {
   return CIterator< T >{data_};
 }
 
 template < class T >
-topit::CIterator< T > topit::Vector< T >::cend() const
+hvostov::CIterator< T > hvostov::Vector< T >::cend() const
 {
   return CIterator< T >{data_ + size_};
 }
 
 template < class T >
-bool topit::Vector< T >::isEmpty() const noexcept
+bool hvostov::Vector< T >::isEmpty() const noexcept
 {
   return size_ == 0;
 }
 
 template < class T >
-size_t topit::Vector< T >::getSize() const noexcept
+size_t hvostov::Vector< T >::getSize() const noexcept
 {
   return size_;
 }
 
 template < class T >
-size_t topit::Vector< T >::getCapacity() const noexcept
+size_t hvostov::Vector< T >::getCapacity() const noexcept
 {
   return capacity_;
 }
 
 template < class T >
-void topit::Vector< T >::pushBack(const T& v)
+void hvostov::Vector< T >::pushBack(const T& v)
 {
   if (size_ >= capacity_) {
     Vector< T > cpy(*this);
@@ -409,14 +409,14 @@ void topit::Vector< T >::pushBack(const T& v)
 }
 
 template < class T >
-void topit::Vector< T >::unsafePushBack(const T& v)
+void hvostov::Vector< T >::unsafePushBack(const T& v)
 {
   data_[size_] = v;
   size_++;
 }
 
 template < class T >
-void topit::Vector< T >::pushBackCount(size_t k, const T& val)
+void hvostov::Vector< T >::pushBackCount(size_t k, const T& val)
 {
   Vector< T > cpy(*this);
   if (size_ + k >= capacity_) {
@@ -430,7 +430,7 @@ void topit::Vector< T >::pushBackCount(size_t k, const T& val)
 
 template < class T >
 template < class IT >
-void topit::Vector< T >::pushBackRange(IT b, size_t k)
+void hvostov::Vector< T >::pushBackRange(IT b, size_t k)
 {
   Vector< T > cpy{*this};
   if (size_ + k >= capacity_) {
@@ -444,7 +444,7 @@ void topit::Vector< T >::pushBackRange(IT b, size_t k)
 }
 
 template < class T >
-void topit::Vector< T >::popBack()
+void hvostov::Vector< T >::popBack()
 {
   if (size_ > 0) {
     size_--;
@@ -453,26 +453,26 @@ void topit::Vector< T >::popBack()
 }
 
 template < class T >
-T& topit::Vector< T >::operator[](size_t index) noexcept
+T& hvostov::Vector< T >::operator[](size_t index) noexcept
 {
   return data_[index];
 }
 
 template < class T >
-const T& topit::Vector< T >::operator[](size_t index) const noexcept
+const T& hvostov::Vector< T >::operator[](size_t index) const noexcept
 {
   return data_[index];
 }
 
 template < class T >
-T& topit::Vector< T >::at(size_t index)
+T& hvostov::Vector< T >::at(size_t index)
 {
   const Vector< T >* cthis = this;
   return const_cast< T& >(cthis->at(index));
 }
 
 template < class T >
-const T& topit::Vector< T >::at(size_t index) const
+const T& hvostov::Vector< T >::at(size_t index) const
 {
   if (index >= size_) {
     throw std::out_of_range("Bad index");
@@ -481,7 +481,7 @@ const T& topit::Vector< T >::at(size_t index) const
 }
 
 template < class T >
-bool topit::operator==(const Vector< T >& lhs, const Vector< T >& rhs)
+bool hvostov::operator==(const Vector< T >& lhs, const Vector< T >& rhs)
 {
   bool is_equal = lhs.getSize() == rhs.getSize();
   for (size_t i = 0; (i < lhs.getSize()) && is_equal; i++) {

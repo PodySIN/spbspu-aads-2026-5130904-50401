@@ -2,7 +2,7 @@
 #define TOP_IT_CONST_ITERATOR_HPP
 #include <cstddef>
 
-namespace topit {
+namespace hvostov {
   template < class T >
   class Vector;
 
@@ -38,35 +38,35 @@ namespace topit {
     friend class Vector< T >;
     const T* ptr_;
   };
-} // namespace topit
+}
 
 template < class T >
-topit::CIterator< T >::CIterator() :
+hvostov::CIterator< T >::CIterator() :
   ptr_(nullptr)
 {
 }
 
 template < class T >
-topit::CIterator< T >::CIterator(T* ptr) :
+hvostov::CIterator< T >::CIterator(T* ptr) :
   ptr_(ptr)
 {
 }
 
 template < class T >
-topit::CIterator< T >::CIterator(const CIterator< T >& it) :
+hvostov::CIterator< T >::CIterator(const CIterator< T >& it) :
   ptr_(it.ptr_)
 {
 }
 
 template < class T >
-topit::CIterator< T >::CIterator(CIterator< T >&& it) noexcept :
+hvostov::CIterator< T >::CIterator(CIterator< T >&& it) noexcept :
   ptr_(it.ptr_)
 {
   it.ptr_ = nullptr;
 }
 
 template < class T >
-topit::CIterator< T >& topit::CIterator< T >::operator=(const CIterator< T >& it)
+hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(const CIterator< T >& it)
 {
   if (this != &it) {
     ptr_ = it.ptr_;
@@ -75,7 +75,7 @@ topit::CIterator< T >& topit::CIterator< T >::operator=(const CIterator< T >& it
 }
 
 template < class T >
-topit::CIterator< T >& topit::CIterator< T >::operator=(CIterator< T >&& it) noexcept
+hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(CIterator< T >&& it) noexcept
 {
   if (this != &it) {
     ptr_ = it.ptr_;
@@ -85,32 +85,32 @@ topit::CIterator< T >& topit::CIterator< T >::operator=(CIterator< T >&& it) noe
 }
 
 template < class T >
-const T& topit::CIterator< T >::operator*() const
+const T& hvostov::CIterator< T >::operator*() const
 {
   return *ptr_;
 }
 
 template < class T >
-const T* topit::CIterator< T >::operator->() const
+const T* hvostov::CIterator< T >::operator->() const
 {
   return ptr_;
 }
 
 template < class T >
-const T& topit::CIterator< T >::operator[](std::ptrdiff_t n) const
+const T& hvostov::CIterator< T >::operator[](std::ptrdiff_t n) const
 {
   return ptr_[n];
 }
 
 template < class T >
-topit::CIterator< T >& topit::CIterator< T >::operator++()
+hvostov::CIterator< T >& hvostov::CIterator< T >::operator++()
 {
   ++ptr_;
   return *this;
 }
 
 template < class T >
-topit::CIterator< T > topit::CIterator< T >::operator++(int)
+hvostov::CIterator< T > hvostov::CIterator< T >::operator++(int)
 {
   CIterator< T > temp = *this;
   ++(*this);
@@ -118,14 +118,14 @@ topit::CIterator< T > topit::CIterator< T >::operator++(int)
 }
 
 template < class T >
-topit::CIterator< T >& topit::CIterator< T >::operator--()
+hvostov::CIterator< T >& hvostov::CIterator< T >::operator--()
 {
   --ptr_;
   return *this;
 }
 
 template < class T >
-topit::CIterator< T > topit::CIterator< T >::operator--(int)
+hvostov::CIterator< T > hvostov::CIterator< T >::operator--(int)
 {
   CIterator< T > temp = *this;
   --(*this);
@@ -133,55 +133,55 @@ topit::CIterator< T > topit::CIterator< T >::operator--(int)
 }
 
 template < class T >
-topit::CIterator< T > topit::CIterator< T >::operator+(std::ptrdiff_t n) const
+hvostov::CIterator< T > hvostov::CIterator< T >::operator+(std::ptrdiff_t n) const
 {
   return CIterator< T >{ptr_ + n};
 }
 
 template < class T >
-topit::CIterator< T > topit::CIterator< T >::operator-(std::ptrdiff_t n) const
+hvostov::CIterator< T > hvostov::CIterator< T >::operator-(std::ptrdiff_t n) const
 {
   return CIterator< T >{ptr_ - n};
 }
 
 template < class T >
-std::ptrdiff_t topit::CIterator< T >::operator-(const CIterator< T >& it) const
+std::ptrdiff_t hvostov::CIterator< T >::operator-(const CIterator< T >& it) const
 {
   return ptr_ - it.ptr_;
 }
 
 template < class T >
-bool topit::CIterator< T >::operator==(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator==(const CIterator< T >& it) const noexcept
 {
   return ptr_ == it.ptr_;
 }
 
 template < class T >
-bool topit::CIterator< T >::operator!=(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator!=(const CIterator< T >& it) const noexcept
 {
   return !(*this == it);
 }
 
 template < class T >
-bool topit::CIterator< T >::operator<(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator<(const CIterator< T >& it) const noexcept
 {
   return ptr_ < it.ptr_;
 }
 
 template < class T >
-bool topit::CIterator< T >::operator>(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator>(const CIterator< T >& it) const noexcept
 {
   return ptr_ > it.ptr_;
 }
 
 template < class T >
-bool topit::CIterator< T >::operator<=(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator<=(const CIterator< T >& it) const noexcept
 {
   return ptr_ <= it.ptr_;
 }
 
 template < class T >
-bool topit::CIterator< T >::operator>=(const CIterator< T >& it) const noexcept
+bool hvostov::CIterator< T >::operator>=(const CIterator< T >& it) const noexcept
 {
   return ptr_ >= it.ptr_;
 }
