@@ -20,6 +20,7 @@ namespace hvostov {
 
   struct Graph {
     Graph() = default;
+    ~Graph() = default;
 
     void addVertex(const std::string& v);
     void removeVertex(const std::string& v);

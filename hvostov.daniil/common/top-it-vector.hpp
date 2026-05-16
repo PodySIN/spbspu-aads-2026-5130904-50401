@@ -148,9 +148,6 @@ hvostov::Vector< T >::Vector(size_t size, const T& init) :
 template < class T >
 hvostov::Vector< T >::~Vector()
 {
-  for (size_t i = 0; i < size_; i++) {
-    data_[i].~T();
-  }
   delete[] data_;
 }
 
