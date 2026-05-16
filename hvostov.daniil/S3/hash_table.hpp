@@ -236,4 +236,209 @@ hvostov::HashTable< Key, Value, Hash, Equal >::operator=(HashTable&& other) noex
   return *this;
 }
 
+template < class Key, class Value, class Hash, class Equal >
+Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k)
+{
+  if (!has(k)) {
+    add(k, Value{});
+  }
+  return at(k);
+}
+
+template < class Key, class Value, class Hash, class Equal >
+const Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k) const
+{
+  return at(k);
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::swap(HashTable& other) noexcept
+{
+  std::swap(bucket_size_, other.bucket_size_);
+  std::swap(data_, other.data_);
+  std::swap(bucket_sizes_, other.bucket_sizes_);
+  std::swap(bucket_count_, other.bucket_count_);
+  std::swap(overflow_cap_, other.overflow_cap_);
+  std::swap(overflow_size_, other.overflow_size_);
+  std::swap(size_, other.size_);
+  std::swap(hasher_, other.hasher_);
+  std::swap(equal_, other.equal_);
+}
+
+template < class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::getElementIndex(const Key& k) const
+{
+  if (bucket_count_ == 0) {
+    throw std::out_of_range("Key not found");
+  }
+  size_t bucket = hasher_(k) % bucket_count_;
+  size_t start_idx = bucket * bucket_size_;
+  size_t bucket_size = bucket_sizes_[bucket];
+  for (size_t i = 0; i < bucket_size; ++i) {
+    size_t idx = start_idx + i;
+    if (equal_(data_[idx].first, k)) {
+      return idx;
+    }
+  }
+  size_t start = overflowStart();
+  for (size_t i = 0; i < overflow_size_; ++i) {
+    size_t idx = start + i;
+    if (equal_(data_[idx].first, k)) {
+      return idx;
+    }
+  }
+  throw std::out_of_range("Key not found");
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, const Value& v)
+{
+  if (bucket_count_ == 0) {
+    throw std::overflow_error("Hash table overflow");
+  }
+  size_t bucket = hasher_(k) % bucket_count_;
+  size_t& bucket_size = bucket_sizes_[bucket];
+
+  if (bucket_size < bucket_size_) {
+    size_t idx = bucket * bucket_size_ + bucket_size;
+    data_[idx] = std::make_pair(k, v);
+    bucket_size++;
+    size_++;
+  } else if (overflow_size_ < overflow_cap_) {
+    size_t idx = overflowStart() + overflow_size_;
+    data_[idx] = std::make_pair(k, v);
+    overflow_size_++;
+    size_++;
+  } else {
+    throw std::overflow_error("Hash table overflow");
+  }
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::add(const Key& k, const Value& v)
+{
+  if (size_ >= totalCapacity()) {
+    throw std::overflow_error("Hash table overflow");
+  }
+  try {
+    size_t idx = getElementIndex(k);
+    data_[idx].second = v;
+    return;
+  } catch (const std::out_of_range&) {
+  }
+  HashTable temp(*this);
+  try {
+    temp.unsafeAdd(k, v);
+    swap(temp);
+  } catch (...) {
+    throw;
+  }
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::removeByIndex(size_t index)
+{
+  size_t last_idx;
+  if (index < overflowStart()) {
+    size_t bucket = index / bucket_size_;
+    size_t start_idx = bucket * bucket_size_;
+    last_idx = start_idx + bucket_sizes_[bucket] - 1;
+    bucket_sizes_[bucket]--;
+  } else {
+    last_idx = overflowStart() + overflow_size_ - 1;
+    overflow_size_--;
+  }
+  if (index != last_idx) {
+    std::swap(data_[index], data_[last_idx]);
+  }
+  size_--;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+Value hvostov::HashTable< Key, Value, Hash, Equal >::drop(const Key& k)
+{
+  size_t idx = getElementIndex(k);
+  Value val = data_[idx].second;
+  HashTable temp(*this);
+  temp.removeByIndex(idx);
+  swap(temp);
+  return val;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTable< Key, Value, Hash, Equal >::has(const Key& k) const
+{
+  try {
+    getElementIndex(k);
+    return true;
+  } catch (const std::out_of_range&) {
+    return false;
+  }
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
+{
+  HashTable new_table;
+  new_table.bucket_size_ = bucket_size_;
+  new_table.allocate(new_bucket_count);
+  for (size_t b = 0; b < bucket_count_; ++b) {
+    size_t start_idx = b * bucket_size_;
+    for (size_t i = 0; i < bucket_sizes_[b]; ++i) {
+      size_t idx = start_idx + i;
+      new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+    }
+  }
+  size_t overflow_start_idx = overflowStart();
+  for (size_t i = 0; i < overflow_size_; ++i) {
+    size_t idx = overflow_start_idx + i;
+    new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+  }
+  swap(new_table);
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::clear() noexcept
+{
+  delete[] data_;
+  delete[] bucket_sizes_;
+  data_ = nullptr;
+  bucket_sizes_ = nullptr;
+  bucket_count_ = 0;
+  overflow_cap_ = 0;
+  overflow_size_ = 0;
+  size_ = 0;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k)
+{
+  size_t idx = getElementIndex(k);
+  return data_[idx].second;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+const Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k) const
+{
+  return const_cast< HashTable* >(this)->at(k);
+}
+
+template < class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTable< Key, Value, Hash, Equal >::empty() const noexcept
+{
+  return size_ == 0;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::getSize() const noexcept
+{
+  return size_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::getCapacity() const noexcept
+{
+  return totalCapacity();
+}
+
 #endif
