@@ -3,9 +3,10 @@
 #include <cstddef>
 
 namespace topit {
-  template< class T > class Vector;
+  template < class T >
+  class Vector;
 
-  template< class T >
+  template < class T >
   class Iterator {
   public:
     Iterator();
@@ -32,35 +33,39 @@ namespace topit {
     bool operator>(const Iterator< T >&) const noexcept;
     bool operator<=(const Iterator< T >&) const noexcept;
     bool operator>=(const Iterator< T >&) const noexcept;
+
   private:
     friend class Vector< T >;
     T* ptr_;
   };
 }
 
-template< class T >
-topit::Iterator< T >::Iterator():
+template < class T >
+topit::Iterator< T >::Iterator() :
   ptr_(nullptr)
-{}
+{
+}
 
-template< class T >
-topit::Iterator< T >::Iterator(T* ptr):
+template < class T >
+topit::Iterator< T >::Iterator(T* ptr) :
   ptr_(ptr)
-{}
+{
+}
 
-template< class T >
-topit::Iterator< T >::Iterator(const Iterator< T >& it):
+template < class T >
+topit::Iterator< T >::Iterator(const Iterator< T >& it) :
   ptr_(it.ptr_)
-{}
+{
+}
 
-template< class T >
-topit::Iterator< T >::Iterator(Iterator< T >&& it) noexcept:
+template < class T >
+topit::Iterator< T >::Iterator(Iterator< T >&& it) noexcept :
   ptr_(it.ptr_)
 {
   it.ptr_ = nullptr;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T >& topit::Iterator< T >::operator=(const Iterator< T >& it)
 {
   if (this != &it) {
@@ -69,7 +74,7 @@ topit::Iterator< T >& topit::Iterator< T >::operator=(const Iterator< T >& it)
   return *this;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T >& topit::Iterator< T >::operator=(Iterator< T >&& it) noexcept
 {
   if (this != &it) {
@@ -79,32 +84,32 @@ topit::Iterator< T >& topit::Iterator< T >::operator=(Iterator< T >&& it) noexce
   return *this;
 }
 
-template< class T >
+template < class T >
 T& topit::Iterator< T >::operator*() const
 {
   return *ptr_;
 }
 
-template< class T >
+template < class T >
 T* topit::Iterator< T >::operator->() const
 {
   return ptr_;
 }
 
-template< class T >
+template < class T >
 T& topit::Iterator< T >::operator[](std::ptrdiff_t n) const
 {
   return ptr_[n];
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T >& topit::Iterator< T >::operator++()
 {
   ++ptr_;
   return *this;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T > topit::Iterator< T >::operator++(int)
 {
   Iterator< T > temp = *this;
@@ -112,14 +117,14 @@ topit::Iterator< T > topit::Iterator< T >::operator++(int)
   return temp;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T >& topit::Iterator< T >::operator--()
 {
   --ptr_;
   return *this;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T > topit::Iterator< T >::operator--(int)
 {
   Iterator< T > temp = *this;
@@ -127,55 +132,55 @@ topit::Iterator< T > topit::Iterator< T >::operator--(int)
   return temp;
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T > topit::Iterator< T >::operator+(std::ptrdiff_t n) const
 {
   return Iterator< T >{ptr_ + n};
 }
 
-template< class T >
+template < class T >
 topit::Iterator< T > topit::Iterator< T >::operator-(std::ptrdiff_t n) const
 {
   return Iterator< T >{ptr_ - n};
 }
 
-template< class T >
+template < class T >
 std::ptrdiff_t topit::Iterator< T >::operator-(const Iterator< T >& it) const
 {
   return ptr_ - it.ptr_;
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator==(const Iterator< T >& it) const noexcept
 {
   return ptr_ == it.ptr_;
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator!=(const Iterator< T >& it) const noexcept
 {
   return !(*this == it);
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator<(const Iterator< T >& it) const noexcept
 {
   return ptr_ < it.ptr_;
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator>(const Iterator< T >& it) const noexcept
 {
   return ptr_ > it.ptr_;
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator<=(const Iterator< T >& it) const noexcept
 {
   return ptr_ <= it.ptr_;
 }
 
-template< class T >
+template < class T >
 bool topit::Iterator< T >::operator>=(const Iterator< T >& it) const noexcept
 {
   return ptr_ >= it.ptr_;
