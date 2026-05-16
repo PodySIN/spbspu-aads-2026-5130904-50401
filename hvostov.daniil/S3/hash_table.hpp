@@ -384,22 +384,13 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, cons
 template < class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::add(const Key& k, const Value& v)
 {
-  if (size_ >= totalCapacity()) {
-    throw std::overflow_error("Hash table overflow");
-  }
-  try {
-    size_t idx = getElementIndex(k);
-    data_[idx].second = v;
-    return;
-  } catch (const std::out_of_range&) {
-  }
   HashTable temp(*this);
   try {
+    temp.data_[temp.getElementIndex(k)].second = v;
+  } catch (const std::out_of_range& e) {
     temp.unsafeAdd(k, v);
-    swap(temp);
-  } catch (...) {
-    throw;
   }
+  swap(temp);
 }
 
 template < class Key, class Value, class Hash, class Equal >
