@@ -38,12 +38,17 @@ int main(int argc, char* argv[])
       input >> from >> to >> weight;
       g.addEdge(from, to, weight);
     }
-    graphs.add(graph_name, g);
+    try {
+      graphs.add(graph_name, g);
+    } catch (...) {
+      graphs.rehash();
+      graphs.add(graph_name, g);
+    }
   }
   input.close();
 
   using cmd_t = void (*)(std::istream&, std::ostream&, hvostov::GraphTable&);
-  hvostov::HashTable< std::string, cmd_t, hvostov::SipHash< std::string >, std::equal_to< std::string > > cmds;
+  hvostov::HashTable< std::string, cmd_t, hvostov::SipHash< std::string >, std::equal_to< std::string > > cmds(9);
   cmds.add("graphs", hvostov::graphs);
   cmds.add("vertexes", hvostov::vertexes);
   cmds.add("outbound", hvostov::outbound);
