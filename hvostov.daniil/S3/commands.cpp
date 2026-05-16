@@ -212,7 +212,7 @@ void hvostov::bind(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
   try {
     graphs.at(name).addEdge(v1, v2, w);
   } catch (...) {
-    graphs.rehash(graphs.getCapacity() * 2);
+    graphs.at(name).edges_.rehash();
     graphs.at(name).addEdge(v1, v2, w);
   }
 }
@@ -276,7 +276,7 @@ void hvostov::create(std::istream& in, std::ostream&, hvostov::GraphTable& graph
   try {
     graphs.add(name, g);
   } catch (...) {
-    graphs.rehash(graphs.getCapacity() * 2);
+    graphs.rehash();
     graphs.add(name, g);
   }
 }
@@ -322,7 +322,7 @@ void hvostov::merge(std::istream& in, std::ostream&, hvostov::GraphTable& graphs
   try {
     graphs.add(name, gr3);
   } catch (...) {
-    graphs.rehash(graphs.getCapacity() * 2);
+    graphs.rehash();
     graphs.add(name, gr3);
   }
 }
@@ -384,7 +384,7 @@ void hvostov::extract(std::istream& in, std::ostream&, hvostov::GraphTable& grap
   try {
     graphs.add(name, gr);
   } catch (...) {
-    graphs.rehash(graphs.getCapacity() * 2);
+    graphs.rehash();
     graphs.add(name, gr);
   }
 }

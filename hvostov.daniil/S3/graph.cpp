@@ -46,7 +46,12 @@ void hvostov::Graph::addEdge(const std::string& from, const std::string& to, siz
   addVertex(to);
   edge_key key(from, to);
   if (!edges_.has(key)) {
-    edges_.add(key, Vector< size_t >());
+    try {
+      edges_.add(key, Vector< size_t >());
+    } catch (const std::overflow_error&) {
+      edges_.rehash();
+      edges_.add(key, Vector< size_t >());
+    }
   }
   edges_.at(key).pushBack(w);
 }

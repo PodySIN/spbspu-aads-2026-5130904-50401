@@ -94,6 +94,7 @@ namespace hvostov {
     Value drop(const Key& k);
     bool has(const Key& k) const;
     void rehash(size_t new_bucket_count);
+    void rehash();
     void clear() noexcept;
 
     Value& at(const Key& k);
@@ -147,6 +148,12 @@ template < class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::totalCapacity() const noexcept
 {
   return overflowStart() + overflow_cap_;
+}
+
+template < class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash()
+{
+  rehash(bucket_count_ == 0 ? 16 : bucket_count_ * 2);
 }
 
 template < class Key, class Value, class Hash, class Equal >
