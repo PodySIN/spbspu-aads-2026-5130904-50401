@@ -1,7 +1,7 @@
-#include <iostream>
 #include "list.hpp"
+#include <iostream>
 #include "utility.hpp"
-#include <limits>
+
 int main()
 {
   hvostov::List< std::pair< std::string, hvostov::List< size_t > > > list;
@@ -19,6 +19,7 @@ int main()
   hvostov::printInfo(std::cout, list);
   try {
     hvostov::printResult(std::cout, list);
+    std::cout << "\n";
   } catch (const std::overflow_error& e) {
     std::cerr << e.what() << "\n";
     return 1;
