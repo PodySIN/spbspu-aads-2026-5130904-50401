@@ -69,28 +69,29 @@ void hvostov::printInfo(std::ostream& out, const List< std::pair< std::string, L
   for (LCiter< std::pair< std::string, List< size_t > > > it = list.begin(); it != list.end(); it++) {
     lit = list_it.insertAfter(lit, it->second.begin());
   }
-  bool F = true;
-  while (F) {
-    F = false;
-    Liter< LCiter< size_t > > it = list_it.begin();
-    if (it != list_it.end()) {
-      if (*(*(it))) {
-        size_t value = *(*(it));
-        out << value;
-        F = true;
-        (*(it))++;
-      }
-      it++;
+  bool has_more = true;
+  while (has_more) {
+    has_more = false;
+    Liter< LCiter< size_t > > cur = list_it.begin();
+    while (cur != list_it.end() && !*(*(cur))) {
+      cur++;
     }
-    for (; it != list_it.end(); it++) {
-      if (*(*(it))) {
-        size_t value = *(*(it));
+    if (cur != list_it.end()) {
+      size_t value = *(*(cur));
+      out << value;
+      has_more = true;
+      (*(cur))++;
+      cur++;
+    }
+    for (; cur != list_it.end(); cur++) {
+      if (*(*(cur))) {
+        size_t value = *(*(cur));
         out << " " << value;
-        F = true;
-        (*(it))++;
+        has_more = true;
+        (*(cur))++;
       }
     }
-    if (F) {
+    if (has_more) {
       out << "\n";
     }
   }
