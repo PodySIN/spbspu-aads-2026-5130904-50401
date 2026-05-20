@@ -1,6 +1,5 @@
+#include "list.hpp"
 #include <iostream>
-#include <limits>
-#include <list.hpp>
 #include "utility.hpp"
 
 int main()
@@ -20,6 +19,7 @@ int main()
   hvostov::printInfo(std::cout, list);
   try {
     hvostov::printResult(std::cout, list);
+    std::cout << "\n";
   } catch (const std::overflow_error& e) {
     std::cerr << e.what() << "\n";
     return 1;
