@@ -1,7 +1,7 @@
+#include "utility.hpp"
+#include "list.hpp"
 #include <iostream>
 #include <limits>
-#include "utility.hpp"
-#include <list.hpp>
 
 bool hvostov::isCorrectNumber(const std::string& str)
 {
@@ -10,8 +10,10 @@ bool hvostov::isCorrectNumber(const std::string& str)
     return str.size() < max_string.size();
   }
   for (size_t i = 0; i < str.size(); i++) {
-    if (str[i] > max_string[i]) return false;
-    if (str[i] < max_string[i]) return true;
+    if (str[i] > max_string[i])
+      return false;
+    if (str[i] < max_string[i])
+      return true;
   }
   return true;
 }
@@ -39,69 +41,57 @@ hvostov::List< std::pair< std::string, hvostov::List< size_t > > > hvostov::getD
   List< std::pair< std::string, List< size_t > > > list;
   Liter< std::pair< std::string, List< size_t > > > list_it = list.begin();
   std::string name;
-  char next = ' ';
   while (in >> name) {
     List< size_t > numbers;
-    next = in.peek();
-    if (next == '\n') {
-      list_it = list.insertAfter(list_it, { name, numbers });
-      continue;
-    }
-    if (next == EOF) {
-      list_it = list.insertAfter(list_it, { name, numbers });
-      break;
-    }
+    size_t number;
     Liter< size_t > it = numbers.begin();
-    std::string number;
     while (in >> number) {
-      if (!isCorrectNumber(number)) {
-        list_it = list.insertAfter(list_it, { name, numbers });
-        throw std::overflow_error("Too BIG number!");
-      }
-      it = numbers.insertAfter(it, hvostov::fromStringToNumber(number));
-      next = in.peek();
-      if (next == '\n' || next == EOF) {
-        break;
-      }
+      it = numbers.insertAfter(it, number);
     }
-    list_it = list.insertAfter(list_it, { name, numbers });
+    in.clear();
+    in >> std::ws;
+    list_it = list.insertAfter(list_it, {name, numbers});
   }
   return list;
 }
 
 void hvostov::printInfo(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list)
 {
-  Liter< std::pair< std::string, List< size_t > > > it = list.begin();
-  out << (*it).first;
+  LCiter< std::pair< std::string, List< size_t > > > it = list.begin();
+  out << it->first;
   it++;
   for (; it != list.end(); it++) {
-    out << " " << (*it).first;
+    out << " " << it->first;
   }
   out << "\n";
-  List< Liter< size_t > > list_it;
-  Liter< Liter< size_t > > lit = list_it.begin();
-  for (Liter< std::pair< std::string, List< size_t > > > it = list.begin(); it != list.end(); it++) {
-    lit = list_it.insertAfter(lit, (*it).second.begin());
+  List< LCiter< size_t > > list_it;
+  Liter< LCiter< size_t > > lit = list_it.begin();
+  for (LCiter< std::pair< std::string, List< size_t > > > it = list.begin(); it != list.end(); it++) {
+    lit = list_it.insertAfter(lit, it->second.begin());
   }
-  bool F = true;
-  bool first = true;
-  while (F) {
-    F = false;
-    first = true;
-    for (Liter< Liter< size_t > > it = list_it.begin(); it != list_it.end(); it++) {
-      if (*(*(it))) {
-        size_t value = *(*(it));
-        if (first) {
-          out << value;
-          first = false;
-        } else {
-          out << " " << value;
-        }
-        F = true;
-        (*it)++;
+  bool has_more = true;
+  while (has_more) {
+    has_more = false;
+    Liter< LCiter< size_t > > cur = list_it.begin();
+    while (cur != list_it.end() && !*(*(cur))) {
+      cur++;
+    }
+    if (cur != list_it.end()) {
+      size_t value = *(*(cur));
+      out << value;
+      has_more = true;
+      (*(cur))++;
+      cur++;
+    }
+    for (; cur != list_it.end(); cur++) {
+      if (*(*(cur))) {
+        size_t value = *(*(cur));
+        out << " " << value;
+        has_more = true;
+        (*(cur))++;
       }
     }
-    if (F) {
+    if (has_more) {
       out << "\n";
     }
   }
@@ -109,10 +99,10 @@ void hvostov::printInfo(std::ostream& out, const List< std::pair< std::string, L
 
 void hvostov::printResult(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list)
 {
-  List< Liter< size_t > > list_it;
-  Liter< Liter< size_t > > lit = list_it.begin();
-  for (Liter< std::pair< std::string, List< size_t > > > it = list.begin(); it != list.end(); it++) {
-    lit = list_it.insertAfter(lit, (*it).second.begin());
+  List< LCiter< size_t > > list_it;
+  Liter< LCiter< size_t > > lit = list_it.begin();
+  for (LCiter< std::pair< std::string, List< size_t > > > it = list.begin(); it != list.end(); it++) {
+    lit = list_it.insertAfter(lit, it->second.begin());
   }
   bool F = true;
   List< size_t > result;
@@ -120,16 +110,16 @@ void hvostov::printResult(std::ostream& out, const List< std::pair< std::string,
   while (F) {
     F = false;
     size_t sum = 0;
-    for (Liter< Liter< size_t > > it = list_it.begin(); it != list_it.end(); it++) {
+    for (Liter< LCiter< size_t > > it = list_it.begin(); it != list_it.end(); it++) {
       if (*(*(it))) {
         size_t value = *(*(it));
         try {
           sum = sumNumbersWithOverflow(sum, value);
-        } catch (const std::overflow_error &e) {
+        } catch (const std::overflow_error& e) {
           throw;
         }
         F = true;
-        (*it)++;
+        (*(it))++;
       }
     }
     if (F) {
@@ -142,5 +132,4 @@ void hvostov::printResult(std::ostream& out, const List< std::pair< std::string,
   for (; result_it != result.end(); result_it++) {
     out << " " << *result_it;
   }
-  out << "\n";
 }

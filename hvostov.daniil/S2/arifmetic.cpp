@@ -1,8 +1,8 @@
 #include "arifmetic.hpp"
-#include "arifmetic_operations.hpp"
 #include <iostream>
 #include <cctype>
 #include <stdexcept>
+#include "arifmetic_operations.hpp"
 
 bool hvostov::isSupportedOperand(const std::string& operand)
 {
@@ -75,9 +75,7 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
     } else if (isSupportedOperand(curr)) {
       size_t priority = getPriority(curr);
       if (priority > 0) {
-        while (!operations.empty() &&
-            operations.top() != "(" &&
-            (getPriority(operations.top()) >= priority)) {
+        while (!operations.empty() && operations.top() != "(" && (getPriority(operations.top()) >= priority)) {
           posfix.push(operations.drop());
         }
         operations.push(curr);
@@ -130,7 +128,7 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
     if (isNumber(token)) {
       values.push(std::stoll(token));
     } else {
-      if (values.getSize() < 2) {
+      if (values.size() < 2) {
         throw std::logic_error("Too few numbers!");
       }
       long long int right = values.drop();
@@ -138,7 +136,7 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
       values.push(calculate(left, token, right));
     }
   }
-  if (values.getSize() != 1) {
+  if (values.size() != 1) {
     throw std::logic_error("Too few operands!");
   }
   return values.drop();

@@ -14,7 +14,7 @@ namespace hvostov {
   size_t getPriority(const std::string& operation);
   Queue< std::string > getPostfix(Queue< std::string >& infix);
   long long int evaluatePostfix(Queue< std::string >& postfix);
-  Stack< long long int >getResult(std::istream& in);
+  Stack< long long int > getResult(std::istream& in);
   void printResult(Stack< long long int > result);
   long long int calculate(long long int left, const std::string& operation, long long int right);
 }

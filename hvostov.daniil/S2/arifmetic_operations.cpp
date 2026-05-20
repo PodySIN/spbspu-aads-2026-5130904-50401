@@ -1,9 +1,10 @@
 #include "arifmetic_operations.hpp"
+#include <stdexcept>
+#include <climits>
 
 long long int hvostov::addWithOverflowCheck(long long int left, long long int right)
 {
-  if ((right > 0 && left > LLMAX - right) ||
-      (right < 0 && left < LLMIN - right)) {
+  if ((right > 0 && left > LLMAX - right) || (right < 0 && left < LLMIN - right)) {
     throw std::overflow_error("Addition overflow!");
   }
   return left + right;
@@ -11,8 +12,7 @@ long long int hvostov::addWithOverflowCheck(long long int left, long long int ri
 
 long long int hvostov::subtractWithOverflowCheck(long long int left, long long int right)
 {
-  if ((right < 0 && left > LLMAX + right) ||
-      (right > 0 && left < LLMIN + right)) {
+  if ((right < 0 && left > LLMAX + right) || (right > 0 && left < LLMIN + right)) {
     throw std::overflow_error("Subtraction overflow!");
   }
   return left - right;
@@ -21,10 +21,8 @@ long long int hvostov::subtractWithOverflowCheck(long long int left, long long i
 long long int hvostov::multiplyWithOverflowCheck(long long int left, long long int right)
 {
   if (left != 0 && right != 0) {
-    if ((left > 0 && right > 0 && left > LLMAX / right) ||
-        (left > 0 && right < 0 && right < LLMIN / left) ||
-        (left < 0 && right > 0 && left < LLMIN / right) ||
-        (left < 0 && right < 0 && right < LLMAX / left)) {
+    if ((left > 0 && right > 0 && left > LLMAX / right) || (left > 0 && right < 0 && right < LLMIN / left) ||
+        (left < 0 && right > 0 && left < LLMIN / right) || (left < 0 && right < 0 && right < LLMAX / left)) {
       throw std::overflow_error("Multiplication overflow!");
     }
   }

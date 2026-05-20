@@ -2,8 +2,6 @@
 #define ARIFMETIC_OPERATIONS_HPP
 
 #include <limits>
-#include <stdexcept>
-#include <climits>
 
 namespace hvostov {
   constexpr long long int LLMAX = std::numeric_limits< long long int >::max();
