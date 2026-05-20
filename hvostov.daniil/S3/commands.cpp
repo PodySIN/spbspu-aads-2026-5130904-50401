@@ -6,9 +6,9 @@
 
 void sortStrings(hvostov::Vector< std::string >& v)
 {
-  for (size_t i = 0; i < v.getSize(); ++i) {
+  for (size_t i = 0; i < v.size(); ++i) {
     size_t min = i;
-    for (size_t j = i + 1; j < v.getSize(); ++j) {
+    for (size_t j = i + 1; j < v.size(); ++j) {
       if (v[j] < v[min]) {
         min = j;
       }
@@ -21,9 +21,9 @@ void sortStrings(hvostov::Vector< std::string >& v)
 
 void sortWeights(hvostov::Vector< size_t >& v)
 {
-  for (size_t i = 0; i < v.getSize(); ++i) {
+  for (size_t i = 0; i < v.size(); ++i) {
     size_t min = i;
-    for (size_t j = i + 1; j < v.getSize(); ++j) {
+    for (size_t j = i + 1; j < v.size(); ++j) {
       if (v[j] < v[min]) {
         min = j;
       }
@@ -47,9 +47,9 @@ struct PairComparator {
 void sortPairs(hvostov::Vector< std::pair< std::string, size_t > >& v)
 {
   PairComparator cmp;
-  for (size_t i = 0; i < v.getSize(); ++i) {
+  for (size_t i = 0; i < v.size(); ++i) {
     size_t min = i;
-    for (size_t j = i + 1; j < v.getSize(); ++j) {
+    for (size_t j = i + 1; j < v.size(); ++j) {
       if (cmp(v[j], v[min])) {
         min = j;
       }
@@ -62,7 +62,7 @@ void sortPairs(hvostov::Vector< std::pair< std::string, size_t > >& v)
 
 void hvostov::graphs(std::istream&, std::ostream& out, hvostov::GraphTable& graphs)
 {
-  if (graphs.getSize() == 0) {
+  if (graphs.size() == 0) {
     out << "\n";
     return;
   }
@@ -71,7 +71,7 @@ void hvostov::graphs(std::istream&, std::ostream& out, hvostov::GraphTable& grap
     names.pushBack((*it).first);
   }
   sortStrings(names);
-  for (size_t i = 0; i < names.getSize(); ++i) {
+  for (size_t i = 0; i < names.size(); ++i) {
     out << names[i] << "\n";
   }
 }
@@ -85,13 +85,13 @@ void hvostov::vertexes(std::istream& in, std::ostream& out, hvostov::GraphTable&
   }
 
   const hvostov::Graph& g = graphs.at(name);
-  if (g.vertices_.getSize() == 0) {
+  if (g.vertices_.size() == 0) {
     out << "\n";
     return;
   }
   hvostov::Vector< std::string > vrts = g.vertices_;
   sortStrings(vrts);
-  for (size_t i = 0; i < vrts.getSize(); ++i) {
+  for (size_t i = 0; i < vrts.size(); ++i) {
     out << vrts[i] << "\n";
   }
 }
@@ -116,13 +116,13 @@ void hvostov::outbound(std::istream& in, std::ostream& out, hvostov::GraphTable&
   for (auto it = g.edges_.begin(); it != g.edges_.end(); ++it) {
     if ((*it).first.first == v) {
       const hvostov::Vector< size_t >& weights = (*it).second;
-      for (size_t i = 0; i < weights.getSize(); ++i) {
+      for (size_t i = 0; i < weights.size(); ++i) {
         res.pushBack(std::make_pair((*it).first.second, weights[i]));
       }
     }
   }
 
-  if (res.getSize() == 0) {
+  if (res.size() == 0) {
     out << "\n";
     return;
   }
@@ -130,17 +130,17 @@ void hvostov::outbound(std::istream& in, std::ostream& out, hvostov::GraphTable&
   sortPairs(res);
 
   size_t i = 0;
-  while (i < res.getSize()) {
+  while (i < res.size()) {
     std::string cur_vertex = res[i].first;
     out << cur_vertex;
 
     hvostov::Vector< size_t > cur_weights;
-    while (i < res.getSize() && res[i].first == cur_vertex) {
+    while (i < res.size() && res[i].first == cur_vertex) {
       cur_weights.pushBack(res[i].second);
       i++;
     }
     sortWeights(cur_weights);
-    for (size_t j = 0; j < cur_weights.getSize(); ++j) {
+    for (size_t j = 0; j < cur_weights.size(); ++j) {
       out << " " << cur_weights[j];
     }
     out << "\n";
@@ -167,13 +167,13 @@ void hvostov::inbound(std::istream& in, std::ostream& out, hvostov::GraphTable& 
   for (auto it = g.edges_.begin(); it != g.edges_.end(); ++it) {
     if ((*it).first.second == v) {
       const hvostov::Vector< size_t >& weights = (*it).second;
-      for (size_t i = 0; i < weights.getSize(); ++i) {
+      for (size_t i = 0; i < weights.size(); ++i) {
         res.pushBack(std::make_pair((*it).first.first, weights[i]));
       }
     }
   }
 
-  if (res.getSize() == 0) {
+  if (res.size() == 0) {
     out << "\n";
     return;
   }
@@ -181,17 +181,17 @@ void hvostov::inbound(std::istream& in, std::ostream& out, hvostov::GraphTable& 
   sortPairs(res);
 
   size_t i = 0;
-  while (i < res.getSize()) {
+  while (i < res.size()) {
     std::string cur_vertex = res[i].first;
     out << cur_vertex;
 
     hvostov::Vector< size_t > cur_weights;
-    while (i < res.getSize() && res[i].first == cur_vertex) {
+    while (i < res.size() && res[i].first == cur_vertex) {
       cur_weights.pushBack(res[i].second);
       i++;
     }
     sortWeights(cur_weights);
-    for (size_t j = 0; j < cur_weights.getSize(); ++j) {
+    for (size_t j = 0; j < cur_weights.size(); ++j) {
       out << " " << cur_weights[j];
     }
     out << "\n";
@@ -242,7 +242,7 @@ void hvostov::cut(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
 
   auto& weights = g.edges_.at(key);
   bool found = false;
-  for (size_t i = 0; i < weights.getSize(); ++i) {
+  for (size_t i = 0; i < weights.size(); ++i) {
     if (weights[i] == w) {
       found = true;
       break;
@@ -301,21 +301,21 @@ void hvostov::merge(std::istream& in, std::ostream&, hvostov::GraphTable& graphs
 
   for (auto it = gr1.edges_.begin(); it != gr1.edges_.end(); ++it) {
     const hvostov::Vector< size_t >& w = (*it).second;
-    for (size_t i = 0; i < w.getSize(); ++i) {
+    for (size_t i = 0; i < w.size(); ++i) {
       gr3.addEdge((*it).first.first, (*it).first.second, w[i]);
     }
   }
   for (auto it = gr2.edges_.begin(); it != gr2.edges_.end(); ++it) {
     const hvostov::Vector< size_t >& w = (*it).second;
-    for (size_t i = 0; i < w.getSize(); ++i) {
+    for (size_t i = 0; i < w.size(); ++i) {
       gr3.addEdge((*it).first.first, (*it).first.second, w[i]);
     }
   }
 
-  for (size_t i = 0; i < gr1.vertices_.getSize(); ++i) {
+  for (size_t i = 0; i < gr1.vertices_.size(); ++i) {
     gr3.addVertex(gr1.vertices_[i]);
   }
-  for (size_t i = 0; i < gr2.vertices_.getSize(); ++i) {
+  for (size_t i = 0; i < gr2.vertices_.size(); ++i) {
     gr3.addVertex(gr2.vertices_[i]);
   }
 
@@ -364,7 +364,7 @@ void hvostov::extract(std::istream& in, std::ostream&, hvostov::GraphTable& grap
 
     bool fromExists = false;
     bool toExists = false;
-    for (size_t i = 0; i < vertexes.getSize(); ++i) {
+    for (size_t i = 0; i < vertexes.size(); ++i) {
       if (vertexes[i] == from) {
         fromExists = true;
       }
@@ -375,7 +375,7 @@ void hvostov::extract(std::istream& in, std::ostream&, hvostov::GraphTable& grap
 
     if (fromExists && toExists) {
       const hvostov::Vector< size_t >& weights = (*it).second;
-      for (size_t i = 0; i < weights.getSize(); ++i) {
+      for (size_t i = 0; i < weights.size(); ++i) {
         gr.addEdge(from, to, weights[i]);
       }
     }

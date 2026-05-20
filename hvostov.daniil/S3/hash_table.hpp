@@ -101,7 +101,7 @@ namespace hvostov {
     const Value& at(const Key& k) const;
 
     bool empty() const noexcept;
-    size_t getSize() const noexcept;
+    size_t size() const noexcept;
     size_t getCapacity() const noexcept;
 
     Iterator begin();
@@ -488,7 +488,7 @@ bool hvostov::HashTable< Key, Value, Hash, Equal >::empty() const noexcept
 }
 
 template < class Key, class Value, class Hash, class Equal >
-size_t hvostov::HashTable< Key, Value, Hash, Equal >::getSize() const noexcept
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::size() const noexcept
 {
   return size_;
 }

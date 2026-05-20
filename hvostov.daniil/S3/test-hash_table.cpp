@@ -9,7 +9,7 @@ BOOST_AUTO_TEST_CASE(test_create_hash_table)
 {
   hvostov::HashTable< int, std::string > table;
   BOOST_CHECK(table.empty());
-  BOOST_CHECK_EQUAL(table.getSize(), 0);
+  BOOST_CHECK_EQUAL(table.size(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_add_and_has)
@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(test_add_and_has)
   hvostov::HashTable< std::string, int > table(1);
   table.add("apple", 5);
   BOOST_CHECK(!table.empty());
-  BOOST_CHECK_EQUAL(table.getSize(), 1);
+  BOOST_CHECK_EQUAL(table.size(), 1);
   BOOST_CHECK(table.has("apple"));
   BOOST_CHECK(!table.has("banana"));
 }
@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(test_add_multiple_elements)
   table.add(1, "one");
   table.add(2, "two");
   table.add(3, "three");
-  BOOST_CHECK_EQUAL(table.getSize(), 3);
+  BOOST_CHECK_EQUAL(table.size(), 3);
   BOOST_CHECK(table.has(1));
   BOOST_CHECK(table.has(2));
   BOOST_CHECK(table.has(3));
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(test_update_existing_key)
   BOOST_CHECK_EQUAL(table.at("key"), 10);
   table.add("key", 20);
   BOOST_CHECK_EQUAL(table.at("key"), 20);
-  BOOST_CHECK_EQUAL(table.getSize(), 1);
+  BOOST_CHECK_EQUAL(table.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_at_method)
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(test_operator_brackets)
   hvostov::HashTable< std::string, std::string > table(1);
   table["hello"] = "world";
   BOOST_CHECK_EQUAL(table["hello"], "world");
-  BOOST_CHECK_EQUAL(table.getSize(), 1);
+  BOOST_CHECK_EQUAL(table.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_operator_brackets_creates_default)
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_operator_brackets_creates_default)
   hvostov::HashTable< int, int > table(10);
   BOOST_CHECK_EQUAL(table[5], 0);
   BOOST_CHECK(table.has(5));
-  BOOST_CHECK_EQUAL(table.getSize(), 1);
+  BOOST_CHECK_EQUAL(table.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_drop_existing_key)
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(test_drop_existing_key)
   BOOST_CHECK_EQUAL(value, 5);
   BOOST_CHECK(!table.has("apple"));
   BOOST_CHECK(table.has("banana"));
-  BOOST_CHECK_EQUAL(table.getSize(), 1);
+  BOOST_CHECK_EQUAL(table.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_drop_throws_on_missing_key)
@@ -101,10 +101,10 @@ BOOST_AUTO_TEST_CASE(test_clear)
   table.add(1, "one");
   table.add(2, "two");
   table.add(3, "three");
-  BOOST_CHECK_EQUAL(table.getSize(), 3);
+  BOOST_CHECK_EQUAL(table.size(), 3);
   table.clear();
   BOOST_CHECK(table.empty());
-  BOOST_CHECK_EQUAL(table.getSize(), 0);
+  BOOST_CHECK_EQUAL(table.size(), 0);
   BOOST_CHECK(!table.has(1));
 }
 
@@ -125,11 +125,11 @@ BOOST_AUTO_TEST_CASE(test_rehash)
   for (size_t i = 0; i < old_cap; ++i) {
     table.add(i, i * 10);
   }
-  size_t old_size = table.getSize();
+  size_t old_size = table.size();
   table.rehash(20);
   size_t new_cap = table.getCapacity();
   BOOST_CHECK(new_cap > old_cap);
-  BOOST_CHECK_EQUAL(table.getSize(), old_size);
+  BOOST_CHECK_EQUAL(table.size(), old_size);
   for (size_t i = 0; i < old_size; ++i) {
     BOOST_CHECK(table.has(i));
     BOOST_CHECK_EQUAL(table.at(i), i * 10);
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_copy_constructor)
   table1.add("three", 3);
 
   hvostov::HashTable< std::string, int > table2(table1);
-  BOOST_CHECK_EQUAL(table2.getSize(), 3);
+  BOOST_CHECK_EQUAL(table2.size(), 3);
   BOOST_CHECK(table2.has("one"));
   BOOST_CHECK(table2.has("two"));
   BOOST_CHECK(table2.has("three"));
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(test_move_constructor)
   table1.add(1, "one");
   table1.add(2, "two");
   hvostov::HashTable< int, std::string > table2(std::move(table1));
-  BOOST_CHECK_EQUAL(table2.getSize(), 2);
+  BOOST_CHECK_EQUAL(table2.size(), 2);
   BOOST_CHECK(table2.has(1));
   BOOST_CHECK(table2.has(2));
   BOOST_CHECK(table1.empty());
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(test_copy_assignment)
   hvostov::HashTable< std::string, int > table2(20);
   table2.add("c", 3);
   table2 = table1;
-  BOOST_CHECK_EQUAL(table2.getSize(), 2);
+  BOOST_CHECK_EQUAL(table2.size(), 2);
   BOOST_CHECK(table2.has("a"));
   BOOST_CHECK(table2.has("b"));
   BOOST_CHECK(!table2.has("c"));
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(test_move_assignment)
   hvostov::HashTable< int, std::string > table2(20);
   table2.add(2, "two");
   table2 = std::move(table1);
-  BOOST_CHECK_EQUAL(table2.getSize(), 1);
+  BOOST_CHECK_EQUAL(table2.size(), 1);
   BOOST_CHECK(table2.has(1));
   BOOST_CHECK(!table2.has(2));
   BOOST_CHECK(table1.empty());
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(test_empty_table_operations)
 {
   hvostov::HashTable< int, std::string > table;
   BOOST_CHECK(table.empty());
-  BOOST_CHECK_EQUAL(table.getSize(), 0);
+  BOOST_CHECK_EQUAL(table.size(), 0);
   BOOST_CHECK_THROW(table.at(1), std::out_of_range);
   BOOST_CHECK_THROW(table.drop(1), std::out_of_range);
   BOOST_CHECK(!table.has(1));
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(test_large_number_of_elements)
   for (size_t i = 0; i < N; ++i) {
     table.add(i, i * i);
   }
-  BOOST_CHECK_EQUAL(table.getSize(), N);
+  BOOST_CHECK_EQUAL(table.size(), N);
   for (size_t i = 0; i < N; ++i) {
     BOOST_CHECK_EQUAL(table.at(i), i * i);
   }

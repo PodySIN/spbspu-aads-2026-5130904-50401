@@ -27,7 +27,7 @@ namespace hvostov {
     const T& at(size_t index) const;
 
     bool isEmpty() const noexcept;
-    size_t getSize() const noexcept;
+    size_t size() const noexcept;
     size_t getCapacity() const noexcept;
 
     void shrinkToFit();
@@ -294,9 +294,9 @@ hvostov::Vector< T >::Vector() :
 
 template < class T >
 hvostov::Vector< T >::Vector(const Vector< T >& rhs) :
-  Vector(rhs.getSize())
+  Vector(rhs.size())
 {
-  for (size_t i = 0; i < rhs.getSize(); i++) {
+  for (size_t i = 0; i < rhs.size(); i++) {
     data_[i] = rhs[i];
   }
 }
@@ -380,7 +380,7 @@ bool hvostov::Vector< T >::isEmpty() const noexcept
 }
 
 template < class T >
-size_t hvostov::Vector< T >::getSize() const noexcept
+size_t hvostov::Vector< T >::size() const noexcept
 {
   return size_;
 }
@@ -480,8 +480,8 @@ const T& hvostov::Vector< T >::at(size_t index) const
 template < class T >
 bool hvostov::operator==(const Vector< T >& lhs, const Vector< T >& rhs)
 {
-  bool is_equal = lhs.getSize() == rhs.getSize();
-  for (size_t i = 0; (i < lhs.getSize()) && is_equal; i++) {
+  bool is_equal = lhs.size() == rhs.size();
+  for (size_t i = 0; (i < lhs.size()) && is_equal; i++) {
     is_equal = is_equal && (lhs[i] == rhs[i]);
   }
   return is_equal;

@@ -2,7 +2,7 @@
 
 void hvostov::Graph::addVertex(const std::string& v)
 {
-  for (size_t i = 0; i < vertices_.getSize(); ++i) {
+  for (size_t i = 0; i < vertices_.size(); ++i) {
     if (vertices_[i] == v) {
       return;
     }
@@ -12,7 +12,7 @@ void hvostov::Graph::addVertex(const std::string& v)
 
 void hvostov::Graph::removeVertex(const std::string& v)
 {
-  for (size_t i = 0; i < vertices_.getSize(); ++i) {
+  for (size_t i = 0; i < vertices_.size(); ++i) {
     if (vertices_[i] == v) {
       vertices_.erase(i);
       break;
@@ -25,14 +25,14 @@ void hvostov::Graph::removeVertex(const std::string& v)
       to_remove.pushBack((*it).first);
     }
   }
-  for (size_t i = 0; i < to_remove.getSize(); ++i) {
+  for (size_t i = 0; i < to_remove.size(); ++i) {
     edges_.drop(to_remove[i]);
   }
 }
 
 bool hvostov::Graph::hasVertex(const std::string& v) const
 {
-  for (size_t i = 0; i < vertices_.getSize(); ++i) {
+  for (size_t i = 0; i < vertices_.size(); ++i) {
     if (vertices_[i] == v) {
       return true;
     }
@@ -63,10 +63,10 @@ void hvostov::Graph::removeEdge(const std::string& from, const std::string& to, 
     throw std::out_of_range("Edge not found");
   }
   auto& weights = edges_.at(key);
-  for (size_t i = 0; i < weights.getSize(); ++i) {
+  for (size_t i = 0; i < weights.size(); ++i) {
     if (weights[i] == w) {
       weights.erase(i);
-      if (weights.getSize() == 0) {
+      if (weights.size() == 0) {
         edges_.drop(key);
       }
       return;
