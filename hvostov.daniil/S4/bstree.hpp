@@ -449,3 +449,33 @@ hvostov::BSTree< Key, Value, Compare >::rotateRight(const_iterator it)
   updateHeightUpwards(node);
   return {left_child};
 }
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::rotateLargeRight(const_iterator it)
+{
+  node_t* node = it.curr_;
+  if (!node) {
+    return it;
+  }
+
+  if (node->left && node->left->right) {
+    rotateLeft({node->left});
+  }
+  return rotateRight({node});
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::rotateLargeLeft(const_iterator it)
+{
+  node_t* node = it.curr_;
+  if (!node) {
+    return it;
+  }
+
+  if (node->right && node->right->left) {
+    rotateRight({node->right});
+  }
+  return rotateLeft({node});
+}
