@@ -213,3 +213,17 @@ hvostov::BSTree< Key, Value, Compare >::~BSTree()
 {
   clear();
 }
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::copy(node_t* other,
+                                                                                                      node_t* parent)
+{
+  if (!other) {
+    return nullptr;
+  }
+  node_t* new_node = new node_t(other->data.first, other->data.second, parent);
+  new_node->height = other->height;
+  new_node->left = copy(other->left, new_node);
+  new_node->right = copy(other->right, new_node);
+  return new_node;
+}
