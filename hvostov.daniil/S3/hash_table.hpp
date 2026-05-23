@@ -26,8 +26,8 @@ namespace hvostov {
     HashTableIterator& operator=(HashTableIterator&& it) noexcept;
     HashTableIterator& operator++();
     HashTableIterator operator++(int);
-    std::pair< const Key, Value >& operator*() const;
-    std::pair< const Key, Value >* operator->() const;
+    std::pair< const Key, Value >& operator*();
+    std::pair< const Key, Value >* operator->();
     bool operator==(const HashTableIterator& it) const;
     bool operator!=(const HashTableIterator& it) const;
 
@@ -555,7 +555,6 @@ hvostov::HashTableIterator< Key, Value >::operator=(HashTableIterator&& it) noex
   }
   return *this;
 }
-
 template < class Key, class Value >
 void hvostov::HashTableIterator< Key, Value >::findNextValid()
 {
@@ -614,7 +613,7 @@ hvostov::HashTableIterator< Key, Value > hvostov::HashTableIterator< Key, Value 
 }
 
 template < class Key, class Value >
-std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operator*() const
+std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operator*()
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
   TableType* t = static_cast< TableType* >(table_);
@@ -622,7 +621,7 @@ std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operato
 }
 
 template < class Key, class Value >
-std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value >::operator->() const
+std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value >::operator->()
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
   TableType* t = static_cast< TableType* >(table_);
