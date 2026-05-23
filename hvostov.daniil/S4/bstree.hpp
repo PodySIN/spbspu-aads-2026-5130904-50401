@@ -292,3 +292,23 @@ void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, Value&& v)
   size_++;
   updateHeightUpwards(parent);
 }
+
+template < class Key, class Value, class Compare >
+Value& hvostov::BSTree< Key, Value, Compare >::get(const Key& k)
+{
+  node_t* node = findNode(k);
+  if (!node) {
+    throw std::runtime_error("Key not found");
+  }
+  return node->data.second;
+}
+
+template < class Key, class Value, class Compare >
+const Value& hvostov::BSTree< Key, Value, Compare >::get(const Key& k) const
+{
+  node_t* node = findNode(k);
+  if (!node) {
+    throw std::runtime_error("Key not found");
+  }
+  return node->data.second;
+}
