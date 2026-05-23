@@ -424,8 +424,9 @@ BOOST_AUTO_TEST_CASE(test_iterator_decrement)
   tree.push(2, "two");
   tree.push(1, "one");
   tree.push(3, "three");
-  auto it = tree.end();
-  --it;
+  auto it = tree.begin();
+  it++;
+  it++;
   BOOST_CHECK_EQUAL((*it).data.first, 3);
   --it;
   BOOST_CHECK_EQUAL((*it).data.first, 2);

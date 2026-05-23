@@ -1,3 +1,6 @@
+#ifndef BSTREE_HPP
+#define BSTREE_HPP
+
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -234,6 +237,7 @@ void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, const Value& v)
   if (!root_) {
     root_ = new node_t(k, v, nullptr);
     size_ = 1;
+    root_->height = 1;
     return;
   }
   node_t* current = root_;
@@ -266,6 +270,7 @@ void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, Value&& v)
   if (!root_) {
     root_ = new node_t(k, std::move(v), nullptr);
     size_ = 1;
+    root_->height = 1;
     return;
   }
   node_t* current = root_;
@@ -817,3 +822,5 @@ bool hvostov::BSTConstIterator< Key, Value >::operator!=(const BSTConstIterator&
 {
   return curr_ != other.curr_;
 }
+
+#endif
