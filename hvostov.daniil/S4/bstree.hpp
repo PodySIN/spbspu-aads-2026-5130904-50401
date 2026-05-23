@@ -227,3 +227,68 @@ typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, V
   new_node->right = copy(other->right, new_node);
   return new_node;
 }
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, const Value& v)
+{
+  if (!root_) {
+    root_ = new node_t(k, v, nullptr);
+    size_ = 1;
+    return;
+  }
+  node_t* current = root_;
+  node_t* parent = nullptr;
+  while (current) {
+    parent = current;
+    if (comp_(k, current->data.first)) {
+      current = current->left;
+    } else if (comp_(current->data.first, k)) {
+      current = current->right;
+    } else {
+      current->data.second = v;
+      return;
+    }
+  }
+
+  node_t* new_node = new node_t(k, v, parent);
+  if (comp_(k, parent->data.first)) {
+    parent->left = new_node;
+  } else {
+    parent->right = new_node;
+  }
+  size_++;
+  updateHeightUpwards(parent);
+}
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, Value&& v)
+{
+  if (!root_) {
+    root_ = new node_t(k, std::move(v), nullptr);
+    size_ = 1;
+    return;
+  }
+  node_t* current = root_;
+  node_t* parent = nullptr;
+
+  while (current) {
+    parent = current;
+    if (comp_(k, current->data.first)) {
+      current = current->left;
+    } else if (comp_(current->data.first, k)) {
+      current = current->right;
+    } else {
+      current->data.second = std::move(v);
+      return;
+    }
+  }
+
+  node_t* new_node = new node_t(k, std::move(v), parent);
+  if (comp_(k, parent->data.first)) {
+    parent->left = new_node;
+  } else {
+    parent->right = new_node;
+  }
+  size_++;
+  updateHeightUpwards(parent);
+}
