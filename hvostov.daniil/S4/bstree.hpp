@@ -312,3 +312,80 @@ const Value& hvostov::BSTree< Key, Value, Compare >::get(const Key& k) const
   }
   return node->data.second;
 }
+
+template < class Key, class Value, class Compare >
+Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
+{
+  node_t* node = findNode(k);
+  if (!node) {
+    throw std::runtime_error("Key not found");
+  }
+
+  Value result = std::move(node->data.second);
+  node_t* parent = node->parent;
+  node_t* height_start = parent;
+
+  if (!node->left && !node->right) {
+    if (parent) {
+      if (parent->left == node)
+        parent->left = nullptr;
+      else
+        parent->right = nullptr;
+    } else {
+      root_ = nullptr;
+    }
+    delete node;
+  } else if (!node->right) {
+    node->left->parent = parent;
+    if (parent) {
+      if (parent->left == node)
+        parent->left = node->left;
+      else
+        parent->right = node->left;
+    } else {
+      root_ = node->left;
+    }
+    delete node;
+  } else if (!node->left) {
+    node->right->parent = parent;
+    if (parent) {
+      if (parent->left == node)
+        parent->right = node->right;
+      else
+        parent->right = node->right;
+    } else {
+      root_ = node->right;
+    }
+    delete node;
+  } else {
+    node_t* successor = minimum(node->right);
+    height_start = successor->parent;
+    if (height_start == node) {
+      height_start = successor;
+    }
+    if (successor->parent != node) {
+      successor->parent->left = successor->right;
+      if (successor->right) {
+        successor->right->parent = successor->parent;
+      }
+      successor->right = node->right;
+      node->right->parent = successor;
+    }
+    successor->left = node->left;
+    if (node->left)
+      node->left->parent = successor;
+    successor->parent = parent;
+    if (parent) {
+      if (parent->left == node)
+        parent->left = successor;
+      else
+        parent->right = successor;
+    } else {
+      root_ = successor;
+    }
+    delete node;
+  }
+  size_--;
+  updateHeightUpwards(height_start);
+  return result;
+}
