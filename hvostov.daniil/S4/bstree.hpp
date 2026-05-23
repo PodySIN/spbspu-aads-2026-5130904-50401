@@ -389,3 +389,63 @@ Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
   updateHeightUpwards(height_start);
   return result;
 }
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::rotateLeft(const_iterator it)
+{
+  node_t* node = it.curr_;
+  if (!node || !node->right) {
+    return it;
+  }
+  node_t* right_child = node->right;
+  node_t* parent = node->parent;
+
+  node->right = right_child->left;
+  if (right_child->left) {
+    right_child->left->parent = node;
+  }
+  right_child->left = node;
+  right_child->parent = parent;
+  node->parent = right_child;
+  if (parent) {
+    if (parent->left == node)
+      parent->left = right_child;
+    else
+      parent->right = right_child;
+  } else {
+    root_ = right_child;
+  }
+  updateHeightUpwards(node);
+  return {right_child};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::rotateRight(const_iterator it)
+{
+  node_t* node = it.curr_;
+  if (!node || !node->left) {
+    return it;
+  }
+  node_t* left_child = node->left;
+  node_t* parent = node->parent;
+
+  node->left = left_child->right;
+  if (left_child->right) {
+    left_child->right->parent = node;
+  }
+  left_child->right = node;
+  left_child->parent = parent;
+  node->parent = left_child;
+  if (parent) {
+    if (parent->left == node)
+      parent->left = left_child;
+    else
+      parent->right = left_child;
+  } else {
+    root_ = left_child;
+  }
+  updateHeightUpwards(node);
+  return {left_child};
+}
