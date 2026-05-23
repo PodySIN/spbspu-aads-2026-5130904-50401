@@ -479,3 +479,54 @@ hvostov::BSTree< Key, Value, Compare >::rotateLargeLeft(const_iterator it)
   }
   return rotateLeft({node});
 }
+
+template < class Key, class Value, class Compare >
+size_t hvostov::BSTree< Key, Value, Compare >::height(const_iterator it) const
+{
+  return it.curr_ ? it.curr_->height : 0;
+}
+
+template < class Key, class Value, class Compare >
+size_t hvostov::BSTree< Key, Value, Compare >::height() const
+{
+  return root_ ? root_->height : 0;
+}
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::swap(BSTree& other) noexcept
+{
+  std::swap(root_, other.root_);
+  std::swap(size_, other.size_);
+  std::swap(comp_, other.comp_);
+}
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::clear() noexcept
+{
+  clearSubtree(root_);
+  root_ = nullptr;
+  size_ = 0;
+}
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::clearSubtree(node_t* node) noexcept
+{
+  if (!node) {
+    return;
+  }
+  clearSubtree(node->left);
+  clearSubtree(node->right);
+  delete node;
+}
+
+template < class Key, class Value, class Compare >
+bool hvostov::BSTree< Key, Value, Compare >::empty() const noexcept
+{
+  return size_ == 0;
+}
+
+template < class Key, class Value, class Compare >
+size_t hvostov::BSTree< Key, Value, Compare >::size() const noexcept
+{
+  return size_;
+}
