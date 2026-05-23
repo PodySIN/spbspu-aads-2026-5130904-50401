@@ -530,3 +530,290 @@ size_t hvostov::BSTree< Key, Value, Compare >::size() const noexcept
 {
   return size_;
 }
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::iterator hvostov::BSTree< Key, Value, Compare >::begin()
+{
+  return {minimum(root_)};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::iterator hvostov::BSTree< Key, Value, Compare >::end()
+{
+  return {nullptr};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::begin() const
+{
+  return {minimum(root_)};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::end() const
+{
+  return {nullptr};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::cbegin() const noexcept
+{
+  return {minimum(root_)};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator
+hvostov::BSTree< Key, Value, Compare >::cend() const noexcept
+{
+  return {nullptr};
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::node_t*
+hvostov::BSTree< Key, Value, Compare >::findNode(const Key& k) const
+{
+  node_t* current = root_;
+  while (current) {
+    if (comp_(k, current->data.first)) {
+      current = current->left;
+    } else if (comp_(current->data.first, k)) {
+      current = current->right;
+    } else {
+      return current;
+    }
+  }
+  return nullptr;
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::node_t*
+hvostov::BSTree< Key, Value, Compare >::minimum(node_t* node) const
+{
+  if (!node) {
+    return nullptr;
+  }
+  while (node->left) {
+    node = node->left;
+  }
+  return node;
+}
+
+template < class Key, class Value, class Compare >
+typename hvostov::BSTree< Key, Value, Compare >::node_t*
+hvostov::BSTree< Key, Value, Compare >::maximum(node_t* node) const
+{
+  if (!node) {
+    return nullptr;
+  }
+  while (node->right) {
+    node = node->right;
+  }
+  return node;
+}
+
+template < class Key, class Value, class Compare >
+size_t hvostov::BSTree< Key, Value, Compare >::calcHeight(node_t* node) const
+{
+  if (!node) {
+    return 0;
+  }
+  return 1 + std::max(calcHeight(node->left), calcHeight(node->right));
+}
+
+template < class Key, class Value, class Compare >
+void hvostov::BSTree< Key, Value, Compare >::updateHeightUpwards(node_t* node)
+{
+  while (node) {
+    node->height = calcHeight(node);
+    node = node->parent;
+  }
+}
+
+template < class Key, class Value >
+hvostov::BSTIterator< Key, Value >::BSTIterator(detail::Node< Key, Value >* node) :
+  curr_(node)
+{
+}
+
+template < class Key, class Value >
+hvostov::detail::Node< Key, Value >& hvostov::BSTIterator< Key, Value >::operator*()
+{
+  return *curr_;
+}
+
+template < class Key, class Value >
+hvostov::detail::Node< Key, Value >* hvostov::BSTIterator< Key, Value >::operator->()
+{
+  return curr_;
+}
+
+template < class Key, class Value >
+hvostov::BSTIterator< Key, Value >& hvostov::BSTIterator< Key, Value >::operator++()
+{
+  if (!curr_) {
+    return *this;
+  }
+  detail::Node< Key, Value >* next = curr_;
+  if (next->right) {
+    next = next->right;
+    while (next->left) {
+      next = next->left;
+    }
+  } else {
+    detail::Node< Key, Value >* parent = next->parent;
+    while (parent && parent->left != next) {
+      next = parent;
+      parent = next->parent;
+    }
+    next = parent;
+  }
+  curr_ = next;
+  return *this;
+}
+
+template < class Key, class Value >
+hvostov::BSTIterator< Key, Value > hvostov::BSTIterator< Key, Value >::operator++(int)
+{
+  BSTIterator temp = *this;
+  ++(*this);
+  return temp;
+}
+
+template < class Key, class Value >
+hvostov::BSTIterator< Key, Value >& hvostov::BSTIterator< Key, Value >::operator--()
+{
+  if (!curr_) {
+    return *this;
+  }
+  detail::Node< Key, Value >* next = curr_;
+  if (next->left) {
+    next = next->left;
+    while (next->right) {
+      next = next->right;
+    }
+  } else {
+    detail::Node< Key, Value >* parent = next->parent;
+    while (parent && next != parent->right) {
+      next = parent;
+      parent = next->parent;
+    }
+    next = parent;
+  }
+  curr_ = next;
+  return *this;
+}
+
+template < class Key, class Value >
+hvostov::BSTIterator< Key, Value > hvostov::BSTIterator< Key, Value >::operator--(int)
+{
+  BSTIterator temp = *this;
+  --(*this);
+  return temp;
+}
+
+template < class Key, class Value >
+bool hvostov::BSTIterator< Key, Value >::operator==(const BSTIterator& other) const
+{
+  return curr_ == other.curr_;
+}
+
+template < class Key, class Value >
+bool hvostov::BSTIterator< Key, Value >::operator!=(const BSTIterator& other) const
+{
+  return curr_ != other.curr_;
+}
+
+template < class Key, class Value >
+hvostov::BSTConstIterator< Key, Value >::BSTConstIterator(detail::Node< Key, Value >* node) :
+  curr_(node)
+{
+}
+
+template < class Key, class Value >
+const hvostov::detail::Node< Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator*() const
+{
+  return *curr_;
+}
+
+template < class Key, class Value >
+const hvostov::detail::Node< Key, Value >* hvostov::BSTConstIterator< Key, Value >::operator->() const
+{
+  return curr_;
+}
+
+template < class Key, class Value >
+hvostov::BSTConstIterator< Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator++()
+{
+  if (!curr_) {
+    return *this;
+  }
+  detail::Node< Key, Value >* next = curr_;
+  if (next->right) {
+    next = next->right;
+    while (next->left) {
+      next = next->left;
+    }
+  } else {
+    detail::Node< Key, Value >* parent = next->parent;
+    while (parent && parent->left != next) {
+      next = parent;
+      parent = next->parent;
+    }
+    next = parent;
+  }
+  curr_ = next;
+  return *this;
+}
+
+template < class Key, class Value >
+hvostov::BSTConstIterator< Key, Value > hvostov::BSTConstIterator< Key, Value >::operator++(int)
+{
+  BSTConstIterator temp = *this;
+  ++(*this);
+  return temp;
+}
+
+template < class Key, class Value >
+hvostov::BSTConstIterator< Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator--()
+{
+  if (!curr_) {
+    return *this;
+  }
+  detail::Node< Key, Value >* next = curr_;
+  if (next->left) {
+    next = next->left;
+    while (next->right) {
+      next = next->right;
+    }
+  } else {
+    detail::Node< Key, Value >* parent = next->parent;
+    while (parent && next != parent->right) {
+      next = parent;
+      parent = next->parent;
+    }
+    next = parent;
+  }
+  curr_ = next;
+  return *this;
+}
+
+template < class Key, class Value >
+hvostov::BSTConstIterator< Key, Value > hvostov::BSTConstIterator< Key, Value >::operator--(int)
+{
+  BSTConstIterator temp = *this;
+  --(*this);
+  return temp;
+}
+
+template < class Key, class Value >
+bool hvostov::BSTConstIterator< Key, Value >::operator==(const BSTConstIterator& other) const
+{
+  return curr_ == other.curr_;
+}
+
+template < class Key, class Value >
+bool hvostov::BSTConstIterator< Key, Value >::operator!=(const BSTConstIterator& other) const
+{
+  return curr_ != other.curr_;
+}
