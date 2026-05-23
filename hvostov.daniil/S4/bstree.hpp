@@ -160,3 +160,56 @@ hvostov::detail::Node< Key, Value >::Node(const Key& k, Value&& v, Node* p) :
   height(0)
 {
 }
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >::BSTree() :
+  root_(nullptr),
+  size_(0),
+  comp_(Compare())
+{
+}
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >::BSTree(const BSTree& other) :
+  root_(nullptr),
+  size_(other.size_),
+  comp_(other.comp_)
+{
+  root_ = copy(other.root_, nullptr);
+}
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >::BSTree(BSTree&& other) noexcept :
+  root_(std::exchange(other.root_, nullptr)),
+  size_(std::exchange(other.size_, 0)),
+  comp_(std::move(other.comp_))
+{
+}
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >& hvostov::BSTree< Key, Value, Compare >::operator=(const BSTree& other)
+{
+  if (this != std::addressof(other)) {
+    BSTree temp(other);
+    swap(temp);
+  }
+  return *this;
+}
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >& hvostov::BSTree< Key, Value, Compare >::operator=(BSTree&& other) noexcept
+{
+  if (this != std::addressof(other)) {
+    clear();
+    root_ = std::exchange(other.root_, nullptr);
+    size_ = std::exchange(other.size_, 0);
+    comp_ = std::move(other.comp_);
+  }
+  return *this;
+}
+
+template < class Key, class Value, class Compare >
+hvostov::BSTree< Key, Value, Compare >::~BSTree()
+{
+  clear();
+}
