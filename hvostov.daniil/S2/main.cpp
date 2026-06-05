@@ -1,27 +1,52 @@
+#include <fstream>
 #include <iostream>
 #include "arifmetic.hpp"
-#include <fstream>
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
   hvostov::Stack< long long int > result;
+  std::istream* input_stream = nullptr;
+  std::ifstream file_stream;
+
+  if (argc > 1) {
+    file_stream.open(argv[1]);
+    if (!file_stream.is_open()) {
+      std::cerr << "Не удалось открыть файл: " << argv[1] << "\n";
+      return 1;
+    }
+    input_stream = &file_stream;
+  } else {
+    input_stream = &std::cin;
+  }
+
   try {
-    if (argc > 1) {
-      std::ifstream in(argv[1]);
-      result = hvostov::getResult(in);
-    } else {
-      result = hvostov::getResult(std::cin);
+    std::string line;
+    while (std::getline(*input_stream, line)) {
+      if (line.empty()) {
+        continue;
+      }
+      long long int answer = hvostov::calculateMathExpression(line);
+      result.push(answer);
     }
   } catch (const std::logic_error& e) {
     std::cerr << e.what() << "\n";
     return 1;
-  } catch(const std::overflow_error& e) {
+  } catch (const std::overflow_error& e) {
     std::cerr << e.what() << "\n";
     return 1;
   } catch (...) {
-    std::cerr << "Unknown error!\n";
+    std::cerr << "Error!\n";
     return 1;
   }
-  hvostov::printResult(result);
+
+  if (!result.empty()) {
+    std::cout << result.top();
+    result.pop();
+  }
+  while (!result.empty()) {
+    std::cout << " " << result.top();
+    result.pop();
+  }
+  std::cout << "\n";
   return 0;
 }

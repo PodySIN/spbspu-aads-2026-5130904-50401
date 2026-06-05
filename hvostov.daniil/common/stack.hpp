@@ -1,10 +1,11 @@
-#ifndef stack_HPP
-#define stack_HPP
+#ifndef STACK_HPP
+#define STACK_HPP
+
 #include "list.hpp"
 #include <cstddef>
 
 namespace hvostov {
-  template < class T >
+  template< class T >
   class Stack {
   public:
     Stack() = default;
@@ -14,13 +15,13 @@ namespace hvostov {
     Stack< T >& operator=(const Stack< T >& stack) = default;
     Stack< T >& operator=(Stack< T >&& stack) noexcept = default;
 
-    T drop();
+    void pop() noexcept;
     void push(const T& rhs);
     void push(T&& rhs);
     void clear() noexcept;
     bool empty() const noexcept;
-    T& top();
-    const T& top() const;
+    T& top() noexcept;
+    const T& top() const noexcept;
     size_t size() const noexcept;
 
   private:
@@ -28,51 +29,49 @@ namespace hvostov {
   };
 }
 
-template < class T >
-T hvostov::Stack< T >::drop()
+template< class T >
+void hvostov::Stack< T >::pop() noexcept
 {
-  T t = top();
   list_.eraseAfter(list_.end());
-  return t;
 }
 
-template < class T >
+template< class T >
 void hvostov::Stack< T >::push(const T& rhs)
 {
   list_.insertAfter(list_.end(), rhs);
 }
 
-template < class T >
+template< class T >
 void hvostov::Stack< T >::push(T&& rhs)
 {
   list_.insertAfter(list_.end(), rhs);
 }
 
-template < class T >
+template< class T >
 void hvostov::Stack< T >::clear() noexcept
 {
   list_.clear();
 }
 
-template < class T >
+template< class T >
 bool hvostov::Stack< T >::empty() const noexcept
 {
   return list_.empty();
 }
 
-template < class T >
-T& hvostov::Stack< T >::top()
+template< class T >
+T& hvostov::Stack< T >::top() noexcept
 {
   return *(list_.begin());
 }
 
-template < class T >
-const T& hvostov::Stack< T >::top() const
+template< class T >
+const T& hvostov::Stack< T >::top() const noexcept
 {
   return *(list_.begin());
 }
 
-template < class T >
+template< class T >
 size_t hvostov::Stack< T >::size() const noexcept
 {
   return list_.size();
