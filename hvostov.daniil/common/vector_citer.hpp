@@ -3,10 +3,10 @@
 #include <cstddef>
 
 namespace hvostov {
-  template < class T >
+  template< class T >
   class Vector;
 
-  template < class T >
+  template< class T >
   class CIterator {
   public:
     CIterator();
@@ -40,32 +40,32 @@ namespace hvostov {
   };
 }
 
-template < class T >
-hvostov::CIterator< T >::CIterator() :
+template< class T >
+hvostov::CIterator< T >::CIterator():
   ptr_(nullptr)
 {
 }
 
-template < class T >
-hvostov::CIterator< T >::CIterator(T* ptr) :
+template< class T >
+hvostov::CIterator< T >::CIterator(T* ptr):
   ptr_(ptr)
 {
 }
 
-template < class T >
-hvostov::CIterator< T >::CIterator(const CIterator< T >& it) :
+template< class T >
+hvostov::CIterator< T >::CIterator(const CIterator< T >& it):
   ptr_(it.ptr_)
 {
 }
 
-template < class T >
-hvostov::CIterator< T >::CIterator(CIterator< T >&& it) noexcept :
+template< class T >
+hvostov::CIterator< T >::CIterator(CIterator< T >&& it) noexcept:
   ptr_(it.ptr_)
 {
   it.ptr_ = nullptr;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(const CIterator< T >& it)
 {
   if (this != &it) {
@@ -74,7 +74,7 @@ hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(const CIterator< T >
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(CIterator< T >&& it) noexcept
 {
   if (this != &it) {
@@ -84,32 +84,32 @@ hvostov::CIterator< T >& hvostov::CIterator< T >::operator=(CIterator< T >&& it)
   return *this;
 }
 
-template < class T >
+template< class T >
 const T& hvostov::CIterator< T >::operator*() const
 {
   return *ptr_;
 }
 
-template < class T >
+template< class T >
 const T* hvostov::CIterator< T >::operator->() const
 {
   return ptr_;
 }
 
-template < class T >
+template< class T >
 const T& hvostov::CIterator< T >::operator[](std::ptrdiff_t n) const
 {
   return ptr_[n];
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T >& hvostov::CIterator< T >::operator++()
 {
   ++ptr_;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T > hvostov::CIterator< T >::operator++(int)
 {
   CIterator< T > temp = *this;
@@ -117,14 +117,14 @@ hvostov::CIterator< T > hvostov::CIterator< T >::operator++(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T >& hvostov::CIterator< T >::operator--()
 {
   --ptr_;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T > hvostov::CIterator< T >::operator--(int)
 {
   CIterator< T > temp = *this;
@@ -132,55 +132,55 @@ hvostov::CIterator< T > hvostov::CIterator< T >::operator--(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T > hvostov::CIterator< T >::operator+(std::ptrdiff_t n) const
 {
   return CIterator< T >{ptr_ + n};
 }
 
-template < class T >
+template< class T >
 hvostov::CIterator< T > hvostov::CIterator< T >::operator-(std::ptrdiff_t n) const
 {
   return CIterator< T >{ptr_ - n};
 }
 
-template < class T >
+template< class T >
 std::ptrdiff_t hvostov::CIterator< T >::operator-(const CIterator< T >& it) const
 {
   return ptr_ - it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator==(const CIterator< T >& it) const noexcept
 {
   return ptr_ == it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator!=(const CIterator< T >& it) const noexcept
 {
   return !(*this == it);
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator<(const CIterator< T >& it) const noexcept
 {
   return ptr_ < it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator>(const CIterator< T >& it) const noexcept
 {
   return ptr_ > it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator<=(const CIterator< T >& it) const noexcept
 {
   return ptr_ <= it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::CIterator< T >::operator>=(const CIterator< T >& it) const noexcept
 {
   return ptr_ >= it.ptr_;

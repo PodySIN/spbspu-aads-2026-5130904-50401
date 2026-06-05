@@ -6,7 +6,7 @@
 #include <cstddef>
 
 namespace hvostov {
-  template < class T >
+  template< class T >
   struct SipHash {
     size_t operator()(const T& key) const
     {
