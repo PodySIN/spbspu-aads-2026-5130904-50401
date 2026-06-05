@@ -17,27 +17,22 @@ BOOST_AUTO_TEST_CASE(test_push_element)
   BOOST_CHECK(queue.front() == 6);
   queue.push(7);
   BOOST_CHECK(queue.front() == 6);
-  BOOST_CHECK(queue.back() == 7);
   queue.push(8);
   BOOST_CHECK(queue.front() == 6);
-  BOOST_CHECK(queue.back() == 8);
 }
 
-BOOST_AUTO_TEST_CASE(test_drop_element)
+BOOST_AUTO_TEST_CASE(test_pop_element)
 {
   hvostov::Queue< int > queue;
   queue.push(6);
   queue.push(7);
   queue.push(8);
   BOOST_CHECK(queue.front() == 6);
-  BOOST_CHECK(queue.back() == 8);
-  queue.drop();
+  queue.pop();
   BOOST_CHECK(queue.front() == 7);
-  BOOST_CHECK(queue.back() == 8);
-  queue.drop();
+  queue.pop();
   BOOST_CHECK(queue.front() == 8);
-  BOOST_CHECK(queue.back() == 8);
-  queue.drop();
+  queue.pop();
   BOOST_CHECK(queue.empty());
 }
 
@@ -68,7 +63,7 @@ BOOST_AUTO_TEST_CASE(test_size)
   queue.push(2);
   BOOST_CHECK_EQUAL(queue.size(), 2);
 
-  queue.drop();
+  queue.pop();
   BOOST_CHECK_EQUAL(queue.size(), 1);
 
   queue.clear();
@@ -91,11 +86,9 @@ BOOST_AUTO_TEST_CASE(test_copy_and_move_queue)
 
   hvostov::Queue< int > queue2 = queue1;
   BOOST_CHECK_EQUAL(queue2.front(), 1);
-  BOOST_CHECK_EQUAL(queue2.back(), 2);
 
   hvostov::Queue< int > queue3 = std::move(queue1);
   BOOST_CHECK_EQUAL(queue3.front(), 1);
-  BOOST_CHECK_EQUAL(queue3.back(), 2);
   BOOST_CHECK(queue1.empty());
 }
 
@@ -112,14 +105,13 @@ BOOST_AUTO_TEST_CASE(test_large_queue)
 
   for (int i = 0; i < N; ++i) {
     BOOST_CHECK_EQUAL(queue.front(), i);
-    BOOST_CHECK_EQUAL(queue.back(), N - 1);
-    queue.drop();
+    queue.pop();
   }
 
   BOOST_CHECK(queue.empty());
 }
 
-BOOST_AUTO_TEST_CASE(test_front_and_back_after_operations)
+BOOST_AUTO_TEST_CASE(test_front_after_operations)
 {
   hvostov::Queue< int > queue;
   queue.push(10);
@@ -127,20 +119,16 @@ BOOST_AUTO_TEST_CASE(test_front_and_back_after_operations)
   queue.push(30);
 
   BOOST_CHECK_EQUAL(queue.front(), 10);
-  BOOST_CHECK_EQUAL(queue.back(), 30);
 
-  queue.drop();
+  queue.pop();
   BOOST_CHECK_EQUAL(queue.front(), 20);
-  BOOST_CHECK_EQUAL(queue.back(), 30);
 
   queue.push(40);
   BOOST_CHECK_EQUAL(queue.front(), 20);
-  BOOST_CHECK_EQUAL(queue.back(), 40);
 
-  queue.drop();
-  queue.drop();
+  queue.pop();
+  queue.pop();
   BOOST_CHECK_EQUAL(queue.front(), 40);
-  BOOST_CHECK_EQUAL(queue.back(), 40);
 }
 
 BOOST_AUTO_TEST_CASE(test_queue_with_different_types)
@@ -149,13 +137,11 @@ BOOST_AUTO_TEST_CASE(test_queue_with_different_types)
   dqueue.push(3.14);
   dqueue.push(2.718);
   BOOST_CHECK_EQUAL(dqueue.front(), 3.14);
-  BOOST_CHECK_EQUAL(dqueue.back(), 2.718);
 
   hvostov::Queue< char > cqueue;
   cqueue.push('A');
   cqueue.push('B');
   BOOST_CHECK_EQUAL(cqueue.front(), 'A');
-  BOOST_CHECK_EQUAL(cqueue.back(), 'B');
 }
 
 BOOST_AUTO_TEST_SUITE_END()
