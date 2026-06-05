@@ -7,17 +7,17 @@
 
 namespace hvostov {
   namespace detail {
-    template < class T >
+    template< class T >
     struct Node {
       T val;
       Node< T >* next;
     };
   }
 
-  template < class T >
+  template< class T >
   class List;
 
-  template < class T >
+  template< class T >
   class Liter {
   public:
     Liter() = default;
@@ -38,7 +38,7 @@ namespace hvostov {
     Liter(detail::Node< T >* n);
   };
 
-  template < class T >
+  template< class T >
   class LCiter {
   public:
     LCiter() = default;
@@ -59,7 +59,7 @@ namespace hvostov {
     LCiter(detail::Node< T >* n);
   };
 
-  template < class T >
+  template< class T >
   class List {
   public:
     List();
@@ -98,7 +98,7 @@ namespace hvostov {
     void merge(List< T >& other);
     void merge(List< T >&& other);
 
-    template < class Cond >
+    template< class Cond >
     void partition(Cond pred);
 
   private:
@@ -109,13 +109,13 @@ namespace hvostov {
   };
 }
 
-template < class T >
+template< class T >
 hvostov::detail::Node< T >* hvostov::List< T >::createFake()
 {
   return new detail::Node< T >();
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::rmFake() noexcept
 {
   if (fake_) {
@@ -124,25 +124,25 @@ void hvostov::List< T >::rmFake() noexcept
   }
 }
 
-template < class T >
-hvostov::Liter< T >::Liter(detail::Node< T >* n) :
+template< class T >
+hvostov::Liter< T >::Liter(detail::Node< T >* n):
   curr_(n)
 {
 }
 
-template < class T >
-hvostov::LCiter< T >::LCiter(detail::Node< T >* n) :
+template< class T >
+hvostov::LCiter< T >::LCiter(detail::Node< T >* n):
   curr_(n)
 {
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::swap(List< T >& list) noexcept
 {
   std::swap(fake_, list.fake_);
   std::swap(size_, list.size_);
 }
-template < class T >
+template< class T >
 hvostov::LCiter< T > hvostov::List< T >::begin() const noexcept
 {
   if (fake_ == nullptr) {
@@ -151,7 +151,7 @@ hvostov::LCiter< T > hvostov::List< T >::begin() const noexcept
   return {fake_->next};
 }
 
-template < class T >
+template< class T >
 hvostov::LCiter< T > hvostov::List< T >::end() const noexcept
 {
   if (fake_ == nullptr) {
@@ -160,16 +160,16 @@ hvostov::LCiter< T > hvostov::List< T >::end() const noexcept
   return {fake_};
 }
 
-template < class T >
-hvostov::List< T >::List() :
+template< class T >
+hvostov::List< T >::List():
   fake_(createFake()),
   size_(0)
 {
   fake_->next = fake_;
 }
 
-template < class T >
-hvostov::List< T >::List(const List< T >& list) :
+template< class T >
+hvostov::List< T >::List(const List< T >& list):
   fake_(createFake()),
   size_(0)
 {
@@ -186,21 +186,21 @@ hvostov::List< T >::List(const List< T >& list) :
   }
 }
 
-template < class T >
-hvostov::List< T >::List(List< T >&& list) noexcept :
+template< class T >
+hvostov::List< T >::List(List< T >&& list) noexcept:
   fake_(std::exchange(list.fake_, nullptr)),
   size_(std::exchange(list.size_, 0))
 {
 }
 
-template < class T >
+template< class T >
 hvostov::List< T >::~List()
 {
   clear();
   rmFake();
 }
 
-template < class T >
+template< class T >
 hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
 {
   assert(this != &list && "self-assignment detected");
@@ -209,7 +209,7 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list) noexcept
 {
   assert(this != &list && "self-assignment detected");
@@ -221,19 +221,19 @@ hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list) noexcept
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T > hvostov::List< T >::begin() noexcept
 {
   return {fake_->next};
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T > hvostov::List< T >::end() noexcept
 {
   return {fake_};
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T& val)
 {
   detail::Node< T >* n = new detail::Node< T >{val, it.curr_->next};
@@ -242,7 +242,7 @@ hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T
   return {n};
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, T&& val)
 {
   detail::Node< T >* n = new detail::Node< T >{val, it.curr_->next};
@@ -251,19 +251,19 @@ hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, T&& val
   return {n};
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::pushFront(const T& val)
 {
   insertAfter(fake_, val);
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::pushFront(T&& val)
 {
   insertAfter(fake_, val);
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::eraseAfter(const Liter< T > it)
 {
   if (it.curr_->next != fake_) {
@@ -274,7 +274,7 @@ void hvostov::List< T >::eraseAfter(const Liter< T > it)
   }
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::clear()
 {
   if (fake_ == nullptr) {
@@ -290,7 +290,7 @@ void hvostov::List< T >::clear()
   fake_->next = fake_;
 }
 
-template < class T >
+template< class T >
 size_t hvostov::List< T >::size() const noexcept
 {
   if (fake_ == nullptr) {
@@ -299,7 +299,7 @@ size_t hvostov::List< T >::size() const noexcept
   return size_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::List< T >::empty() const noexcept
 {
   if (fake_ == nullptr) {
@@ -308,7 +308,7 @@ bool hvostov::List< T >::empty() const noexcept
   return fake_->next == fake_;
 }
 
-template < class T >
+template< class T >
 hvostov::LCiter< T > hvostov::List< T >::cend() const noexcept
 {
   if (fake_ == nullptr) {
@@ -317,7 +317,7 @@ hvostov::LCiter< T > hvostov::List< T >::cend() const noexcept
   return {fake_};
 }
 
-template < class T >
+template< class T >
 hvostov::LCiter< T > hvostov::List< T >::cbegin() const noexcept
 {
   if (fake_ == nullptr) {
@@ -326,14 +326,14 @@ hvostov::LCiter< T > hvostov::List< T >::cbegin() const noexcept
   return {fake_->next};
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T >& hvostov::Liter< T >::operator++() noexcept
 {
   curr_ = curr_->next;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::Liter< T > hvostov::Liter< T >::operator++(int)
 {
   Liter< T > temp = *this;
@@ -341,38 +341,38 @@ hvostov::Liter< T > hvostov::Liter< T >::operator++(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 T& hvostov::Liter< T >::operator*() noexcept
 {
   return curr_->val;
 }
 
-template < class T >
+template< class T >
 T* hvostov::Liter< T >::operator->() noexcept
 {
   return std::addressof(curr_->val);
 }
 
-template < class T >
+template< class T >
 bool hvostov::Liter< T >::operator==(const Liter< T >& liter) const noexcept
 {
   return curr_ == liter.curr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Liter< T >::operator!=(const Liter< T >& liter) const noexcept
 {
   return curr_ != liter.curr_;
 }
 
-template < class T >
+template< class T >
 hvostov::LCiter< T >& hvostov::LCiter< T >::operator++() noexcept
 {
   curr_ = curr_->next;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::LCiter< T > hvostov::LCiter< T >::operator++(int)
 {
   LCiter< T > temp = *this;
@@ -380,31 +380,31 @@ hvostov::LCiter< T > hvostov::LCiter< T >::operator++(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 const T& hvostov::LCiter< T >::operator*() const noexcept
 {
   return curr_->val;
 }
 
-template < class T >
+template< class T >
 const T* hvostov::LCiter< T >::operator->() const noexcept
 {
   return std::addressof(curr_->val);
 }
 
-template < class T >
+template< class T >
 bool hvostov::LCiter< T >::operator==(const LCiter< T >& lciter) const noexcept
 {
   return curr_ == lciter.curr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::LCiter< T >::operator!=(const LCiter< T >& lciter) const noexcept
 {
   return curr_ != lciter.curr_;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
 {
   if (other.empty() || this == &other) {
@@ -432,13 +432,13 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
   other.size_ = 0;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other)
 {
   splice(pos, other);
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > it)
 {
   if (this == &other || other.empty()) {
@@ -465,13 +465,13 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > i
   size_++;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > it)
 {
   splice(pos, other, it);
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last)
 {
   if (this == &other || other.empty() || first.curr_ == last.curr_) {
@@ -514,13 +514,13 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > f
   size_ += count;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last)
 {
   splice(pos, other, first, last);
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::sort()
 {
   if (size_ <= 1) {
@@ -589,7 +589,7 @@ void hvostov::List< T >::sort()
   right.size_ = 0;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::merge(List< T >& other)
 {
   if (this == &other || other.empty()) {
@@ -632,14 +632,14 @@ void hvostov::List< T >::merge(List< T >& other)
   other.size_ = 0;
 }
 
-template < class T >
+template< class T >
 void hvostov::List< T >::merge(List< T >&& other)
 {
   merge(other);
 }
 
-template < class T >
-template < class Cond >
+template< class T >
+template< class Cond >
 void hvostov::List< T >::partition(Cond pred)
 {
   if (size_ <= 1) {
