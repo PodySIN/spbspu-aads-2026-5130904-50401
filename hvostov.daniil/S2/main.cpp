@@ -6,9 +6,9 @@ int main(int argc, char** argv)
 {
   hvostov::Stack< long long int > result;
   std::istream* input_stream = nullptr;
+  std::ifstream file_stream;
 
   if (argc > 1) {
-    std::ifstream file_stream;
     file_stream.open(argv[1]);
     if (!file_stream.is_open()) {
       std::cerr << "Не удалось открыть файл: " << argv[1] << "\n";
