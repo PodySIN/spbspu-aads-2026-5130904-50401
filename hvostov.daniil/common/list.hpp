@@ -86,6 +86,21 @@ namespace hvostov {
     bool empty() const noexcept;
     size_t size() const noexcept;
 
+    void splice(LCiter< T > pos, List< T >& other);
+    void splice(LCiter< T > pos, List< T >&& other);
+    void splice(LCiter< T > pos, List< T >& other, LCiter< T > it);
+    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > it);
+    void splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last);
+    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last);
+
+    void sort();
+
+    void merge(List< T >& other);
+    void merge(List< T >&& other);
+
+    template < class Cond >
+    void partition(Cond pred);
+
   private:
     detail::Node< T >* fake_;
     size_t size_;
@@ -387,6 +402,313 @@ template < class T >
 bool hvostov::LCiter< T >::operator!=(const LCiter< T >& lciter) const noexcept
 {
   return curr_ != lciter.curr_;
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
+{
+  if (other.empty() || this == &other) {
+    return;
+  }
+  detail::Node< T >* other_first = other.fake_->next;
+  detail::Node< T >* other_last = other.fake_;
+  while (other_last->next != other.fake_) {
+    other_last = other_last->next;
+  }
+  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* before_pos = fake_;
+  if (pos_node == fake_->next) {
+    before_pos = fake_;
+  } else {
+    before_pos = fake_->next;
+    while (before_pos->next != pos_node) {
+      before_pos = before_pos->next;
+    }
+  }
+  other_last->next = pos_node;
+  before_pos->next = other_first;
+  size_ += other.size_;
+  other.fake_->next = other.fake_;
+  other.size_ = 0;
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other)
+{
+  splice(pos, other);
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > it)
+{
+  if (this == &other || other.empty()) {
+    return;
+  }
+  detail::Node< T >* node_after_it = it.curr_->next;
+  if (node_after_it == other.fake_) {
+    return;
+  }
+  it.curr_->next = node_after_it->next;
+  other.size_--;
+  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* before_pos = fake_;
+  if (pos_node == fake_->next) {
+    before_pos = fake_;
+  } else {
+    before_pos = fake_->next;
+    while (before_pos->next != pos_node) {
+      before_pos = before_pos->next;
+    }
+  }
+  node_after_it->next = pos_node;
+  before_pos->next = node_after_it;
+  size_++;
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > it)
+{
+  splice(pos, other, it);
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last)
+{
+  if (this == &other || other.empty() || first.curr_ == last.curr_) {
+    return;
+  }
+  detail::Node< T >* before_first = other.fake_;
+  if (first.curr_ != other.fake_->next) {
+    before_first = other.fake_->next;
+    while (before_first->next != first.curr_) {
+      before_first = before_first->next;
+    }
+  }
+  size_t count = 0;
+  detail::Node< T >* temp = first.curr_;
+  while (temp != last.curr_ && temp != other.fake_) {
+    temp = temp->next;
+    count++;
+  }
+  if (count == 0) {
+    return;
+  }
+  detail::Node< T >* range_last = first.curr_;
+  for (size_t i = 1; i < count; ++i) {
+    range_last = range_last->next;
+  }
+  before_first->next = last.curr_;
+  other.size_ -= count;
+  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* before_pos = fake_;
+  if (pos_node == fake_->next) {
+    before_pos = fake_;
+  } else {
+    before_pos = fake_->next;
+    while (before_pos->next != pos_node) {
+      before_pos = before_pos->next;
+    }
+  }
+  range_last->next = pos_node;
+  before_pos->next = first.curr_;
+  size_ += count;
+}
+
+template < class T >
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last)
+{
+  splice(pos, other, first, last);
+}
+
+template < class T >
+void hvostov::List< T >::sort()
+{
+  if (size_ <= 1) {
+    return;
+  }
+
+  detail::Node< T >* slow = fake_->next;
+  detail::Node< T >* fast = fake_->next->next;
+  while (fast != fake_ && fast->next != fake_) {
+    slow = slow->next;
+    fast = fast->next->next;
+  }
+  List< T > left;
+  List< T > right;
+  left.fake_->next = fake_->next;
+  detail::Node< T >* left_end = slow;
+  detail::Node< T >* right_start = slow->next;
+  left_end->next = left.fake_;
+  left.size_ = (size_ + 1) / 2;
+  right.fake_->next = right_start;
+  detail::Node< T >* right_end = right_start;
+
+  while (right_end->next != fake_) {
+    right_end = right_end->next;
+  }
+  right_end->next = right.fake_;
+  right.size_ = size_ / 2;
+  fake_->next = fake_;
+  size_ = 0;
+  left.sort();
+  right.sort();
+  detail::Node< T >* l = left.fake_->next;
+  detail::Node< T >* r = right.fake_->next;
+  detail::Node< T >* cur = fake_;
+
+  while (l != left.fake_ && r != right.fake_) {
+    if (l->val <= r->val) {
+      cur->next = l;
+      l = l->next;
+    } else {
+      cur->next = r;
+      r = r->next;
+    }
+    cur = cur->next;
+    size_++;
+  }
+
+  while (l != left.fake_) {
+    cur->next = l;
+    l = l->next;
+    cur = cur->next;
+    size_++;
+  }
+
+  while (r != right.fake_) {
+    cur->next = r;
+    r = r->next;
+    cur = cur->next;
+    size_++;
+  }
+
+  cur->next = fake_;
+  left.fake_->next = left.fake_;
+  left.size_ = 0;
+  right.fake_->next = right.fake_;
+  right.size_ = 0;
+}
+
+template < class T >
+void hvostov::List< T >::merge(List< T >& other)
+{
+  if (this == &other || other.empty()) {
+    return;
+  }
+  if (empty()) {
+    swap(other);
+    return;
+  }
+  detail::Node< T >* cur = fake_;
+  detail::Node< T >* this_curr = fake_->next;
+  detail::Node< T >* other_curr = other.fake_->next;
+  size_t merged_size = 0;
+  while (this_curr != fake_ && other_curr != other.fake_) {
+    if (this_curr->val <= other_curr->val) {
+      cur->next = this_curr;
+      this_curr = this_curr->next;
+    } else {
+      cur->next = other_curr;
+      other_curr = other_curr->next;
+    }
+    cur = cur->next;
+    merged_size++;
+  }
+  while (this_curr != fake_) {
+    cur->next = this_curr;
+    this_curr = this_curr->next;
+    cur = cur->next;
+    merged_size++;
+  }
+  while (other_curr != other.fake_) {
+    cur->next = other_curr;
+    other_curr = other_curr->next;
+    cur = cur->next;
+    merged_size++;
+  }
+  cur->next = fake_;
+  size_ = merged_size;
+  other.fake_->next = other.fake_;
+  other.size_ = 0;
+}
+
+template < class T >
+void hvostov::List< T >::merge(List< T >&& other)
+{
+  merge(other);
+}
+
+template < class T >
+template < class Cond >
+void hvostov::List< T >::partition(Cond pred)
+{
+  if (size_ <= 1) {
+    return;
+  }
+  List< T > true_list;
+  List< T > false_list;
+  detail::Node< T >* curr = fake_->next;
+  while (curr != fake_) {
+    detail::Node< T >* next = curr->next;
+    if (pred(curr->val)) {
+      curr->next = true_list.fake_;
+      if (true_list.empty()) {
+        true_list.fake_->next = curr;
+      } else {
+        detail::Node< T >* last = true_list.fake_->next;
+        while (last->next != true_list.fake_) {
+          last = last->next;
+        }
+        last->next = curr;
+      }
+      true_list.size_++;
+    } else {
+      curr->next = false_list.fake_;
+      if (false_list.empty()) {
+        false_list.fake_->next = curr;
+      } else {
+        detail::Node< T >* last = false_list.fake_->next;
+        while (last->next != false_list.fake_) {
+          last = last->next;
+        }
+        last->next = curr;
+      }
+      false_list.size_++;
+    }
+    curr = next;
+  }
+  fake_->next = fake_;
+  size_ = 0;
+  if (!true_list.empty()) {
+    detail::Node< T >* true_last = true_list.fake_->next;
+    while (true_last->next != true_list.fake_) {
+      true_last = true_last->next;
+    }
+    fake_->next = true_list.fake_->next;
+    true_last->next = fake_;
+    size_ += true_list.size_;
+    if (!false_list.empty()) {
+      detail::Node< T >* false_last = false_list.fake_->next;
+      while (false_last->next != false_list.fake_) {
+        false_last = false_last->next;
+      }
+      true_last->next = false_list.fake_->next;
+      false_last->next = fake_;
+      size_ += false_list.size_;
+    }
+  } else if (!false_list.empty()) {
+    detail::Node< T >* false_last = false_list.fake_->next;
+    while (false_last->next != false_list.fake_) {
+      false_last = false_last->next;
+    }
+    fake_->next = false_list.fake_->next;
+    false_last->next = fake_;
+    size_ += false_list.size_;
+  }
+  true_list.fake_->next = true_list.fake_;
+  true_list.size_ = 0;
+  false_list.fake_->next = false_list.fake_;
+  false_list.size_ = 0;
 }
 
 #endif
