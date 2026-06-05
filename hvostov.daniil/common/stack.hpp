@@ -16,8 +16,12 @@ namespace hvostov {
     Stack< T >& operator=(Stack< T >&& stack) noexcept = default;
 
     void pop() noexcept;
+
     void push(const T& rhs);
     void push(T&& rhs);
+    template< class... Args >
+    void emplace(Args&&... args);
+
     void clear() noexcept;
     bool empty() const noexcept;
     T& top() noexcept;
@@ -33,6 +37,13 @@ template< class T >
 void hvostov::Stack< T >::pop() noexcept
 {
   list_.eraseAfter(list_.end());
+}
+
+template< class T >
+template< class... Args >
+void hvostov::Stack< T >::emplace(Args&&... args)
+{
+  list_.emplaceFront(std::forward< Args >(args)...);
 }
 
 template< class T >

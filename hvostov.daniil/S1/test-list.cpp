@@ -1115,4 +1115,20 @@ BOOST_AUTO_TEST_CASE(test_combined_sort_merge_partition)
   }
 }
 
+BOOST_AUTO_TEST_CASE(test_list_emplace)
+{
+  hvostov::List< std::pair< int, std::string > > list;
+
+  auto it = list.begin();
+  list.emplace(it, 1, "first");
+  list.emplace(it, 2, "second");
+
+  BOOST_CHECK_EQUAL(list.size(), 2);
+
+  auto check_it = list.begin();
+  BOOST_CHECK_EQUAL((*check_it).first, 2);
+  ++check_it;
+  BOOST_CHECK_EQUAL((*check_it).first, 1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

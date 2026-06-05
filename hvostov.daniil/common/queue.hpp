@@ -16,8 +16,12 @@ namespace hvostov {
     Queue< T >& operator=(Queue< T >&& queue) noexcept = default;
 
     void pop() noexcept;
+
     void push(const T& rhs);
     void push(T&& rhs);
+    template< class... Args >
+    void emplace(Args&&... args);
+
     void clear() noexcept;
     bool empty() const noexcept;
     T& front() noexcept;
@@ -43,6 +47,16 @@ void hvostov::Queue< T >::pop() noexcept
 {
   list_.eraseAfter(list_.end());
   if (empty()) {
+    tail_ = list_.begin();
+  }
+}
+
+template< class T >
+template< class... Args >
+void hvostov::Queue< T >::emplace(Args&&... args)
+{
+  tail_ = list_.emplace(tail_, std::forward< Args >(args)...);
+  if (list_.size() == 1) {
     tail_ = list_.begin();
   }
 }
