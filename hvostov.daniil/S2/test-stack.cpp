@@ -111,13 +111,13 @@ BOOST_AUTO_TEST_CASE(test_large_stack)
   hvostov::Stack< int > stack;
   const int N = 1000;
 
-  for(int i = 0; i < N; ++i) {
+  for (int i = 0; i < N; ++i) {
     stack.push(i);
   }
 
   BOOST_CHECK_EQUAL(stack.size(), N);
 
-  for(int i = N - 1; i >= 0; --i) {
+  for (int i = N - 1; i >= 0; --i) {
     BOOST_CHECK_EQUAL(stack.top(), i);
     stack.pop();
   }
@@ -175,6 +175,26 @@ BOOST_AUTO_TEST_CASE(test_push_after_clear)
   stack.push(4);
   BOOST_CHECK_EQUAL(stack.top(), 4);
   BOOST_CHECK_EQUAL(stack.size(), 2);
+}
+
+BOOST_AUTO_TEST_CASE(test_stack_emplace)
+{
+  hvostov::Stack< std::pair< int, std::string > > stack;
+
+  stack.emplace(1, "first");
+  stack.emplace(2, "second");
+  stack.emplace(3, "third");
+
+  BOOST_CHECK_EQUAL(stack.size(), 3);
+  BOOST_CHECK_EQUAL(stack.top().first, 3);
+  BOOST_CHECK_EQUAL(stack.top().second, "third");
+
+  stack.pop();
+  BOOST_CHECK_EQUAL(stack.top().first, 2);
+
+  stack.pop();
+  stack.pop();
+  BOOST_CHECK(stack.empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

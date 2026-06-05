@@ -80,6 +80,12 @@ namespace hvostov {
     Liter< T > insertAfter(const Liter< T > it, T&& val);
     void pushFront(const T& val);
     void pushFront(T&& val);
+
+    template< class... Args >
+    Liter< T > emplace(const Liter< T > it, Args&&... args);
+    template< class... Args >
+    void emplaceFront(Args&&... args);
+
     void eraseAfter(const Liter< T > it);
     void swap(List< T >& list) noexcept;
     void clear();
@@ -107,6 +113,25 @@ namespace hvostov {
     detail::Node< T >* createFake();
     void rmFake() noexcept;
   };
+}
+
+template< class T >
+template< class... Args >
+hvostov::Liter< T > hvostov::List< T >::emplace(const Liter< T > it, Args&&... args)
+{
+  detail::Node< T >* n = new detail::Node< T >();
+  n->val = T(std::forward< Args >(args)...);
+  n->next = it.curr_->next;
+  it.curr_->next = n;
+  size_++;
+  return {n};
+}
+
+template< class T >
+template< class... Args >
+void hvostov::List< T >::emplaceFront(Args&&... args)
+{
+  emplace(Liter< T >(fake_), std::forward< Args >(args)...);
 }
 
 template< class T >
