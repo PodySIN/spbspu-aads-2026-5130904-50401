@@ -3,10 +3,10 @@
 #include <cstddef>
 
 namespace hvostov {
-  template < class T >
+  template< class T >
   class Vector;
 
-  template < class T >
+  template< class T >
   class Iterator {
   public:
     Iterator();
@@ -40,32 +40,32 @@ namespace hvostov {
   };
 }
 
-template < class T >
-hvostov::Iterator< T >::Iterator() :
+template< class T >
+hvostov::Iterator< T >::Iterator():
   ptr_(nullptr)
 {
 }
 
-template < class T >
-hvostov::Iterator< T >::Iterator(T* ptr) :
+template< class T >
+hvostov::Iterator< T >::Iterator(T* ptr):
   ptr_(ptr)
 {
 }
 
-template < class T >
-hvostov::Iterator< T >::Iterator(const Iterator< T >& it) :
+template< class T >
+hvostov::Iterator< T >::Iterator(const Iterator< T >& it):
   ptr_(it.ptr_)
 {
 }
 
-template < class T >
-hvostov::Iterator< T >::Iterator(Iterator< T >&& it) noexcept :
+template< class T >
+hvostov::Iterator< T >::Iterator(Iterator< T >&& it) noexcept:
   ptr_(it.ptr_)
 {
   it.ptr_ = nullptr;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T >& hvostov::Iterator< T >::operator=(const Iterator< T >& it)
 {
   if (this != &it) {
@@ -74,7 +74,7 @@ hvostov::Iterator< T >& hvostov::Iterator< T >::operator=(const Iterator< T >& i
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T >& hvostov::Iterator< T >::operator=(Iterator< T >&& it) noexcept
 {
   if (this != &it) {
@@ -84,32 +84,32 @@ hvostov::Iterator< T >& hvostov::Iterator< T >::operator=(Iterator< T >&& it) no
   return *this;
 }
 
-template < class T >
+template< class T >
 T& hvostov::Iterator< T >::operator*() const
 {
   return *ptr_;
 }
 
-template < class T >
+template< class T >
 T* hvostov::Iterator< T >::operator->() const
 {
   return ptr_;
 }
 
-template < class T >
+template< class T >
 T& hvostov::Iterator< T >::operator[](std::ptrdiff_t n) const
 {
   return ptr_[n];
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T >& hvostov::Iterator< T >::operator++()
 {
   ++ptr_;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T > hvostov::Iterator< T >::operator++(int)
 {
   Iterator< T > temp = *this;
@@ -117,14 +117,14 @@ hvostov::Iterator< T > hvostov::Iterator< T >::operator++(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T >& hvostov::Iterator< T >::operator--()
 {
   --ptr_;
   return *this;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T > hvostov::Iterator< T >::operator--(int)
 {
   Iterator< T > temp = *this;
@@ -132,55 +132,55 @@ hvostov::Iterator< T > hvostov::Iterator< T >::operator--(int)
   return temp;
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T > hvostov::Iterator< T >::operator+(std::ptrdiff_t n) const
 {
   return Iterator< T >{ptr_ + n};
 }
 
-template < class T >
+template< class T >
 hvostov::Iterator< T > hvostov::Iterator< T >::operator-(std::ptrdiff_t n) const
 {
   return Iterator< T >{ptr_ - n};
 }
 
-template < class T >
+template< class T >
 std::ptrdiff_t hvostov::Iterator< T >::operator-(const Iterator< T >& it) const
 {
   return ptr_ - it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator==(const Iterator< T >& it) const noexcept
 {
   return ptr_ == it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator!=(const Iterator< T >& it) const noexcept
 {
   return !(*this == it);
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator<(const Iterator< T >& it) const noexcept
 {
   return ptr_ < it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator>(const Iterator< T >& it) const noexcept
 {
   return ptr_ > it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator<=(const Iterator< T >& it) const noexcept
 {
   return ptr_ <= it.ptr_;
 }
 
-template < class T >
+template< class T >
 bool hvostov::Iterator< T >::operator>=(const Iterator< T >& it) const noexcept
 {
   return ptr_ >= it.ptr_;

@@ -11,12 +11,12 @@
 
 namespace hvostov {
 
-  template < class Key, class Value, class Hash, class Equal >
+  template< class Key, class Value, class Hash, class Equal >
   class HashTable;
-  template < class Key, class Value >
+  template< class Key, class Value >
   class HashTableConstIterator;
 
-  template < class Key, class Value >
+  template< class Key, class Value >
   class HashTableIterator {
   public:
     HashTableIterator();
@@ -33,7 +33,7 @@ namespace hvostov {
 
   private:
     friend class HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    template < class K, class V, class H, class E >
+    template< class K, class V, class H, class E >
     friend class HashTable;
     friend class HashTableConstIterator< Key, Value >;
     void* table_;
@@ -43,7 +43,7 @@ namespace hvostov {
     void findNextValid();
   };
 
-  template < class Key, class Value >
+  template< class Key, class Value >
   class HashTableConstIterator {
   public:
     HashTableConstIterator();
@@ -61,7 +61,7 @@ namespace hvostov {
 
   private:
     friend class HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    template < class K, class V, class H, class E >
+    template< class K, class V, class H, class E >
     friend class HashTable;
 
     const void* table_;
@@ -71,7 +71,7 @@ namespace hvostov {
     void findNextValid();
   };
 
-  template < class Key, class Value, class Hash = SipHash< Key >, class Equal = std::equal_to< Key > >
+  template< class Key, class Value, class Hash = SipHash< Key >, class Equal = std::equal_to< Key > >
   class HashTable {
   public:
     using Iterator = HashTableIterator< Key, Value >;
@@ -138,25 +138,25 @@ namespace hvostov {
 
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::overflowStart() const noexcept
 {
   return bucket_count_ * bucket_size_;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::totalCapacity() const noexcept
 {
   return overflowStart() + overflow_cap_;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::rehash()
 {
   rehash(bucket_count_ == 0 ? 16 : bucket_count_ * 2);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::allocate(size_t num_buckets)
 {
   size_t new_bucket_count = num_buckets;
@@ -183,8 +183,8 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::allocate(size_t num_buckets)
   }
 }
 
-template < class Key, class Value, class Hash, class Equal >
-hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(size_t expected_elements) :
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(size_t expected_elements):
   bucket_size_(4),
   hasher_(),
   equal_()
@@ -202,8 +202,8 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(size_t expected_element
   allocate(bucket_count_);
 }
 
-template < class Key, class Value, class Hash, class Equal >
-hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other) :
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other):
   bucket_size_(other.bucket_size_),
   bucket_count_(other.bucket_count_),
   overflow_cap_(other.overflow_cap_),
@@ -235,8 +235,8 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other)
   }
 }
 
-template < class Key, class Value, class Hash, class Equal >
-hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& other) noexcept :
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& other) noexcept:
   bucket_size_(other.bucket_size_),
   data_(other.data_),
   bucket_sizes_(other.bucket_sizes_),
@@ -255,14 +255,14 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& other) noex
   other.size_ = 0;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >::~HashTable()
 {
   delete[] data_;
   delete[] bucket_sizes_;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >&
 hvostov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& other)
 {
@@ -274,7 +274,7 @@ hvostov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& other)
   return *this;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >&
 hvostov::HashTable< Key, Value, Hash, Equal >::operator=(HashTable&& other) noexcept
 {
@@ -303,7 +303,7 @@ hvostov::HashTable< Key, Value, Hash, Equal >::operator=(HashTable&& other) noex
   return *this;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k)
 {
   if (!has(k)) {
@@ -312,13 +312,13 @@ Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k)
   return at(k);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 const Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k) const
 {
   return at(k);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::swap(HashTable& other) noexcept
 {
   std::swap(bucket_size_, other.bucket_size_);
@@ -332,7 +332,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::swap(HashTable& other) noexc
   std::swap(equal_, other.equal_);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::getElementIndex(const Key& k) const
 {
   if (bucket_count_ == 0) {
@@ -357,7 +357,7 @@ size_t hvostov::HashTable< Key, Value, Hash, Equal >::getElementIndex(const Key&
   throw std::out_of_range("Key not found");
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, const Value& v)
 {
   if (bucket_count_ == 0) {
@@ -381,7 +381,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, cons
   }
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::add(const Key& k, const Value& v)
 {
   HashTable temp(*this);
@@ -393,7 +393,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::add(const Key& k, const Valu
   swap(temp);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::removeByIndex(size_t index)
 {
   size_t last_idx;
@@ -412,7 +412,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::removeByIndex(size_t index)
   size_--;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 Value hvostov::HashTable< Key, Value, Hash, Equal >::drop(const Key& k)
 {
   size_t idx = getElementIndex(k);
@@ -423,7 +423,7 @@ Value hvostov::HashTable< Key, Value, Hash, Equal >::drop(const Key& k)
   return val;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 bool hvostov::HashTable< Key, Value, Hash, Equal >::has(const Key& k) const
 {
   try {
@@ -434,7 +434,7 @@ bool hvostov::HashTable< Key, Value, Hash, Equal >::has(const Key& k) const
   }
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
 {
   HashTable new_table;
@@ -455,7 +455,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_cou
   swap(new_table);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::clear() noexcept
 {
   delete[] data_;
@@ -468,46 +468,46 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::clear() noexcept
   size_ = 0;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k)
 {
   size_t idx = getElementIndex(k);
   return data_[idx].second;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 const Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k) const
 {
   return const_cast< HashTable* >(this)->at(k);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 bool hvostov::HashTable< Key, Value, Hash, Equal >::empty() const noexcept
 {
   return size_ == 0;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::size() const noexcept
 {
   return size_;
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::getCapacity() const noexcept
 {
   return totalCapacity();
 }
 
-template < class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator() :
+template< class Key, class Value >
+hvostov::HashTableIterator< Key, Value >::HashTableIterator():
   table_(nullptr),
   current_idx_(0)
 {
 }
 
-template < class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t idx) :
+template< class Key, class Value >
+hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t idx):
   table_(table),
   current_idx_(idx)
 {
@@ -516,15 +516,15 @@ hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t 
   }
 }
 
-template < class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(const HashTableIterator& it) :
+template< class Key, class Value >
+hvostov::HashTableIterator< Key, Value >::HashTableIterator(const HashTableIterator& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
 {
 }
 
-template < class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(HashTableIterator&& it) noexcept :
+template< class Key, class Value >
+hvostov::HashTableIterator< Key, Value >::HashTableIterator(HashTableIterator&& it) noexcept:
   table_(it.table_),
   current_idx_(it.current_idx_)
 {
@@ -532,7 +532,7 @@ hvostov::HashTableIterator< Key, Value >::HashTableIterator(HashTableIterator&& 
   it.current_idx_ = 0;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >&
 hvostov::HashTableIterator< Key, Value >::operator=(const HashTableIterator& it)
 {
@@ -543,7 +543,7 @@ hvostov::HashTableIterator< Key, Value >::operator=(const HashTableIterator& it)
   return *this;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >&
 hvostov::HashTableIterator< Key, Value >::operator=(HashTableIterator&& it) noexcept
 {
@@ -555,7 +555,7 @@ hvostov::HashTableIterator< Key, Value >::operator=(HashTableIterator&& it) noex
   }
   return *this;
 }
-template < class Key, class Value >
+template< class Key, class Value >
 void hvostov::HashTableIterator< Key, Value >::findNextValid()
 {
   if (!table_) {
@@ -590,7 +590,7 @@ void hvostov::HashTableIterator< Key, Value >::findNextValid()
   current_idx_ = total;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 typename hvostov::HashTableIterator< Key, Value >& hvostov::HashTableIterator< Key, Value >::operator++()
 {
   if (table_) {
@@ -604,7 +604,7 @@ typename hvostov::HashTableIterator< Key, Value >& hvostov::HashTableIterator< K
   return *this;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value > hvostov::HashTableIterator< Key, Value >::operator++(int)
 {
   HashTableIterator tmp = *this;
@@ -612,7 +612,7 @@ hvostov::HashTableIterator< Key, Value > hvostov::HashTableIterator< Key, Value 
   return tmp;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operator*()
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
@@ -620,7 +620,7 @@ std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operato
   return reinterpret_cast< std::pair< const Key, Value >& >(t->data_[current_idx_]);
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value >::operator->()
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
@@ -628,27 +628,27 @@ std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value >::operato
   return reinterpret_cast< std::pair< const Key, Value >* >(&t->data_[current_idx_]);
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 bool hvostov::HashTableIterator< Key, Value >::operator==(const HashTableIterator& it) const
 {
   return table_ == it.table_ && current_idx_ == it.current_idx_;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 bool hvostov::HashTableIterator< Key, Value >::operator!=(const HashTableIterator& it) const
 {
   return !(*this == it);
 }
 
-template < class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator() :
+template< class Key, class Value >
+hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator():
   table_(nullptr),
   current_idx_(0)
 {
 }
 
-template < class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void* table, size_t idx) :
+template< class Key, class Value >
+hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void* table, size_t idx):
   table_(table),
   current_idx_(idx)
 {
@@ -657,15 +657,15 @@ hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void
   }
 }
 
-template < class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableConstIterator& it) :
+template< class Key, class Value >
+hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableConstIterator& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
 {
 }
 
-template < class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(HashTableConstIterator&& it) noexcept :
+template< class Key, class Value >
+hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(HashTableConstIterator&& it) noexcept:
   table_(it.table_),
   current_idx_(it.current_idx_)
 {
@@ -673,14 +673,14 @@ hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(HashTableC
   it.current_idx_ = 0;
 }
 
-template < class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableIterator< Key, Value >& it) :
+template< class Key, class Value >
+hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableIterator< Key, Value >& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
 {
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >&
 hvostov::HashTableConstIterator< Key, Value >::operator=(const HashTableConstIterator& it)
 {
@@ -691,7 +691,7 @@ hvostov::HashTableConstIterator< Key, Value >::operator=(const HashTableConstIte
   return *this;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >&
 hvostov::HashTableConstIterator< Key, Value >::operator=(HashTableConstIterator&& it) noexcept
 {
@@ -704,7 +704,7 @@ hvostov::HashTableConstIterator< Key, Value >::operator=(HashTableConstIterator&
   return *this;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 void hvostov::HashTableConstIterator< Key, Value >::findNextValid()
 {
   if (!table_) {
@@ -744,7 +744,7 @@ void hvostov::HashTableConstIterator< Key, Value >::findNextValid()
   current_idx_ = total;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >& hvostov::HashTableConstIterator< Key, Value >::operator++()
 {
   if (table_) {
@@ -758,7 +758,7 @@ hvostov::HashTableConstIterator< Key, Value >& hvostov::HashTableConstIterator< 
   return *this;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value > hvostov::HashTableConstIterator< Key, Value >::operator++(int)
 {
   HashTableConstIterator tmp = *this;
@@ -766,7 +766,7 @@ hvostov::HashTableConstIterator< Key, Value > hvostov::HashTableConstIterator< K
   return tmp;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 const std::pair< const Key, Value >& hvostov::HashTableConstIterator< Key, Value >::operator*() const
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
@@ -774,7 +774,7 @@ const std::pair< const Key, Value >& hvostov::HashTableConstIterator< Key, Value
   return reinterpret_cast< const std::pair< const Key, Value >& >(t->data_[current_idx_]);
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 const std::pair< const Key, Value >* hvostov::HashTableConstIterator< Key, Value >::operator->() const
 {
   using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
@@ -782,52 +782,52 @@ const std::pair< const Key, Value >* hvostov::HashTableConstIterator< Key, Value
   return reinterpret_cast< const std::pair< const Key, Value >* >(&t->data_[current_idx_]);
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 bool hvostov::HashTableConstIterator< Key, Value >::operator==(const HashTableConstIterator& it) const
 {
   return table_ == it.table_ && current_idx_ == it.current_idx_;
 }
 
-template < class Key, class Value >
+template< class Key, class Value >
 bool hvostov::HashTableConstIterator< Key, Value >::operator!=(const HashTableConstIterator& it) const
 {
   return !(*this == it);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::Iterator hvostov::HashTable< Key, Value, Hash, Equal >::begin()
 {
   return Iterator(this, 0);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::Iterator hvostov::HashTable< Key, Value, Hash, Equal >::end()
 {
   return Iterator(this, totalCapacity());
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
 hvostov::HashTable< Key, Value, Hash, Equal >::begin() const
 {
   return ConstIterator(this, 0);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
 hvostov::HashTable< Key, Value, Hash, Equal >::end() const
 {
   return ConstIterator(this, totalCapacity());
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
 hvostov::HashTable< Key, Value, Hash, Equal >::cbegin() const
 {
   return ConstIterator(this, 0);
 }
 
-template < class Key, class Value, class Hash, class Equal >
+template< class Key, class Value, class Hash, class Equal >
 typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
 hvostov::HashTable< Key, Value, Hash, Equal >::cend() const
 {
