@@ -144,4 +144,24 @@ BOOST_AUTO_TEST_CASE(test_queue_with_different_types)
   BOOST_CHECK_EQUAL(cqueue.front(), 'A');
 }
 
+BOOST_AUTO_TEST_CASE(test_queue_emplace)
+{
+  hvostov::Queue< std::pair< int, std::string > > queue;
+
+  queue.emplace(1, "one");
+  queue.emplace(2, "two");
+  queue.emplace(3, "three");
+
+  BOOST_CHECK_EQUAL(queue.size(), 3);
+  BOOST_CHECK_EQUAL(queue.front().first, 1);
+  BOOST_CHECK_EQUAL(queue.front().second, "one");
+
+  queue.pop();
+  BOOST_CHECK_EQUAL(queue.front().first, 2);
+
+  queue.pop();
+  queue.pop();
+  BOOST_CHECK(queue.empty());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
