@@ -119,12 +119,8 @@ void hvostov::intersectDatasets(std::istream& in, std::ostream& out, DatasetMap&
 
   for (auto it = ds1.cbegin(); it != ds1.cend(); ++it) {
     const std::string& key = (*it).data.first;
-    try {
-      ds2.get(key);
-      result.push(key, (*it).data.second);
-    } catch (const std::runtime_error&) {
-      // ключа нет в ds2
-    }
+    ds2.get(key);
+    result.push(key, (*it).data.second);
   }
 
   datasets[new_dataset] = std::move(result);
