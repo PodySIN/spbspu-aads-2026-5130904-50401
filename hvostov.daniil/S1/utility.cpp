@@ -139,5 +139,9 @@ void hvostov::printInfo(std::ostream& out, const List< std::pair< std::string, L
 void hvostov::printResult(std::ostream& out, const List< std::pair< std::string, List< size_t > > >& list)
 {
   List< size_t > result = calculateSums(list);
-  printList(out, result);
+  if (result.empty()) {
+    out << "0";
+  } else {
+    printList(out, result);
+  }
 }

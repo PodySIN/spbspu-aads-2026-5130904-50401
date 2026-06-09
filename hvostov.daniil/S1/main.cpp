@@ -12,10 +12,6 @@ int main()
     hvostov::printInfo(std::cout, list);
     return 1;
   }
-  if (list.empty()) {
-    std::cout << "0\n";
-    return 0;
-  }
   hvostov::printInfo(std::cout, list);
   try {
     hvostov::printResult(std::cout, list);
