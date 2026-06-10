@@ -114,8 +114,7 @@ hvostov::Vector< T >::Vector(size_t size):
   data_(size ? new T[size] : nullptr),
   size_(size),
   capacity_(size)
-{
-}
+{}
 
 template< class T >
 hvostov::Vector< T >::Vector(size_t size, const T* arr):
@@ -289,8 +288,7 @@ hvostov::Vector< T >::Vector():
   data_(nullptr),
   size_(0),
   capacity_(0)
-{
-}
+{}
 
 template< class T >
 hvostov::Vector< T >::Vector(const Vector< T >& rhs):

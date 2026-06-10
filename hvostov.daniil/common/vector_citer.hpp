@@ -43,20 +43,17 @@ namespace hvostov {
 template< class T >
 hvostov::CIterator< T >::CIterator():
   ptr_(nullptr)
-{
-}
+{}
 
 template< class T >
 hvostov::CIterator< T >::CIterator(T* ptr):
   ptr_(ptr)
-{
-}
+{}
 
 template< class T >
 hvostov::CIterator< T >::CIterator(const CIterator< T >& it):
   ptr_(it.ptr_)
-{
-}
+{}
 
 template< class T >
 hvostov::CIterator< T >::CIterator(CIterator< T >&& it) noexcept:

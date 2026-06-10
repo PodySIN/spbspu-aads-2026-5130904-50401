@@ -43,20 +43,17 @@ namespace hvostov {
 template< class T >
 hvostov::Iterator< T >::Iterator():
   ptr_(nullptr)
-{
-}
+{}
 
 template< class T >
 hvostov::Iterator< T >::Iterator(T* ptr):
   ptr_(ptr)
-{
-}
+{}
 
 template< class T >
 hvostov::Iterator< T >::Iterator(const Iterator< T >& it):
   ptr_(it.ptr_)
-{
-}
+{}
 
 template< class T >
 hvostov::Iterator< T >::Iterator(Iterator< T >&& it) noexcept:
