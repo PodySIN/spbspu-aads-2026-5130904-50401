@@ -1,20 +1,16 @@
-#include "list.hpp"
 #include <iostream>
 #include "utility.hpp"
+#include "list.hpp"
 
 int main()
 {
   hvostov::List< std::pair< std::string, hvostov::List< size_t > > > list;
   try {
     list = hvostov::getData(std::cin);
-  } catch (const std::overflow_error& e) {
-    std::cerr << e.what() << "\n";
+  } catch (...) {
+    std::cerr << "Bad input!\n";
     hvostov::printInfo(std::cout, list);
     return 1;
-  }
-  if (list.empty()) {
-    std::cout << "0\n";
-    return 0;
   }
   hvostov::printInfo(std::cout, list);
   try {
