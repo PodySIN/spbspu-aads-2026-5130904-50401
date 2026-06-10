@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include "arifmetic.hpp"
+#include "stack.hpp"
 
 int main(int argc, char** argv)
 {
@@ -28,14 +29,8 @@ int main(int argc, char** argv)
       long long int answer = hvostov::calculateMathExpression(line);
       result.push(answer);
     }
-  } catch (const std::logic_error& e) {
-    std::cerr << e.what() << "\n";
-    return 1;
-  } catch (const std::overflow_error& e) {
-    std::cerr << e.what() << "\n";
-    return 1;
   } catch (...) {
-    std::cerr << "Error!\n";
+    std::cerr << "Uncorrect math expression!\n";
     return 1;
   }
 

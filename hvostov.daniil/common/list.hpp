@@ -127,9 +127,7 @@ template< class T >
 template< class... Args >
 hvostov::Liter< T > hvostov::List< T >::emplace(const Liter< T > it, Args&&... args)
 {
-  detail::Node< T >* n = new detail::Node< T >();
-  n->val = T(std::forward< Args >(args)...);
-  n->next = it.curr_->next;
+  detail::Node< T >* n = new detail::Node< T >{T{std::forward< Args >(args)...}, it.curr_->next};
   it.curr_->next = n;
   size_++;
   return {n};
@@ -173,6 +171,7 @@ void hvostov::List< T >::swap(List< T >& list) noexcept
   std::swap(fake_, list.fake_);
   std::swap(size_, list.size_);
 }
+
 template< class T >
 hvostov::LCiter< T > hvostov::List< T >::begin() const noexcept
 {
@@ -265,31 +264,25 @@ hvostov::Liter< T > hvostov::List< T >::end() noexcept
 template< class T >
 hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T& val)
 {
-  detail::Node< T >* n = new detail::Node< T >{val, it.curr_->next};
-  it.curr_->next = n;
-  size_++;
-  return {n};
+  return emplace(it, val);
 }
 
 template< class T >
 hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, T&& val)
 {
-  detail::Node< T >* n = new detail::Node< T >{std::forward< T >(val), it.curr_->next};
-  it.curr_->next = n;
-  size_++;
-  return {n};
+  return emplace(it, std::forward< T >(val));
 }
 
 template< class T >
 void hvostov::List< T >::pushFront(const T& val)
 {
-  insertAfter(fake_, val);
+  emplaceFront(val);
 }
 
 template< class T >
 void hvostov::List< T >::pushFront(T&& val)
 {
-  insertAfter(fake_, std::forward< T >(val));
+  emplaceFront(std::forward< T >(val));
 }
 
 template< class T >
