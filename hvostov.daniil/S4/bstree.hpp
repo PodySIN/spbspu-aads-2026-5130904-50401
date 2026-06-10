@@ -8,7 +8,6 @@
 #include <functional>
 
 namespace hvostov {
-
   namespace detail {
     template< class Key, class Value >
     struct Node {
@@ -151,8 +150,7 @@ hvostov::detail::Node< Key, Value >::Node(const Key& k, const Value& v, Node* p)
   left(nullptr),
   right(nullptr),
   height(0)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::detail::Node< Key, Value >::Node(const Key& k, Value&& v, Node* p):
@@ -161,16 +159,14 @@ hvostov::detail::Node< Key, Value >::Node(const Key& k, Value&& v, Node* p):
   left(nullptr),
   right(nullptr),
   height(0)
-{
-}
+{}
 
 template< class Key, class Value, class Compare >
 hvostov::BSTree< Key, Value, Compare >::BSTree():
   root_(nullptr),
   size_(0),
   comp_(Compare())
-{
-}
+{}
 
 template< class Key, class Value, class Compare >
 hvostov::BSTree< Key, Value, Compare >::BSTree(const BSTree& other):
@@ -186,8 +182,7 @@ hvostov::BSTree< Key, Value, Compare >::BSTree(BSTree&& other) noexcept:
   root_(std::exchange(other.root_, nullptr)),
   size_(std::exchange(other.size_, 0)),
   comp_(std::move(other.comp_))
-{
-}
+{}
 
 template< class Key, class Value, class Compare >
 hvostov::BSTree< Key, Value, Compare >& hvostov::BSTree< Key, Value, Compare >::operator=(const BSTree& other)
@@ -638,8 +633,7 @@ void hvostov::BSTree< Key, Value, Compare >::updateHeightUpwards(node_t* node)
 template< class Key, class Value >
 hvostov::BSTIterator< Key, Value >::BSTIterator(detail::Node< Key, Value >* node):
   curr_(node)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::detail::Node< Key, Value >& hvostov::BSTIterator< Key, Value >::operator*()
@@ -732,8 +726,7 @@ bool hvostov::BSTIterator< Key, Value >::operator!=(const BSTIterator& other) co
 template< class Key, class Value >
 hvostov::BSTConstIterator< Key, Value >::BSTConstIterator(detail::Node< Key, Value >* node):
   curr_(node)
-{
-}
+{}
 
 template< class Key, class Value >
 const hvostov::detail::Node< Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator*() const
