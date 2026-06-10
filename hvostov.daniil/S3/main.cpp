@@ -1,10 +1,10 @@
+#include <fstream>
+#include <iostream>
+#include <limits>
 #include "commands.hpp"
 #include "graph.hpp"
 #include "hash_table.hpp"
 #include "sip_hash.hpp"
-#include <fstream>
-#include <iostream>
-#include <limits>
 
 void handleError(std::ostream& out, std::istream& in)
 {

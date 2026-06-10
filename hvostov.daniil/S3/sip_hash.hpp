@@ -1,9 +1,9 @@
 #ifndef SIPHASH_HPP
 #define SIPHASH_HPP
 
+#include <cstddef>
 #include <boost/hash2/hash_append.hpp>
 #include <boost/hash2/siphash.hpp>
-#include <cstddef>
 
 namespace hvostov {
   template< class T >

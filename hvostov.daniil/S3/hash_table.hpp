@@ -1,13 +1,13 @@
 #ifndef HASH_TABLE_HPP
 #define HASH_TABLE_HPP
 
-#include "sip_hash.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
 #include <stdexcept>
 #include <utility>
+#include "sip_hash.hpp"
 
 namespace hvostov {
 
@@ -503,8 +503,7 @@ template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >::HashTableIterator():
   table_(nullptr),
   current_idx_(0)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t idx):
@@ -520,8 +519,7 @@ template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >::HashTableIterator(const HashTableIterator& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::HashTableIterator< Key, Value >::HashTableIterator(HashTableIterator&& it) noexcept:
@@ -555,6 +553,7 @@ hvostov::HashTableIterator< Key, Value >::operator=(HashTableIterator&& it) noex
   }
   return *this;
 }
+
 template< class Key, class Value >
 void hvostov::HashTableIterator< Key, Value >::findNextValid()
 {
@@ -644,8 +643,7 @@ template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator():
   table_(nullptr),
   current_idx_(0)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void* table, size_t idx):
@@ -661,8 +659,7 @@ template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableConstIterator& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(HashTableConstIterator&& it) noexcept:
@@ -677,8 +674,7 @@ template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableIterator< Key, Value >& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
-{
-}
+{}
 
 template< class Key, class Value >
 hvostov::HashTableConstIterator< Key, Value >&

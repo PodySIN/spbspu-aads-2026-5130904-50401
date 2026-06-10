@@ -1,15 +1,14 @@
 #ifndef COMMANDS_HPP
 #define COMMANDS_HPP
 
-#include "graph.hpp"
-#include "hash_table.hpp"
-#include "sip_hash.hpp"
 #include <istream>
 #include <ostream>
 #include <string>
+#include "graph.hpp"
+#include "hash_table.hpp"
+#include "sip_hash.hpp"
 
 namespace hvostov {
-
   using GraphTable = HashTable< std::string, Graph, SipHash< std::string >, std::equal_to< std::string > >;
 
   void graphs(std::istream& in, std::ostream& out, GraphTable& graphs);
@@ -21,7 +20,6 @@ namespace hvostov {
   void create(std::istream& in, std::ostream& out, GraphTable& graphs);
   void merge(std::istream& in, std::ostream& out, GraphTable& graphs);
   void extract(std::istream& in, std::ostream& out, GraphTable& graphs);
-
 }
 
 #endif
