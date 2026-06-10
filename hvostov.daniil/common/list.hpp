@@ -1,8 +1,10 @@
 #ifndef LIST_HPP
 #define LIST_HPP
 
+#include <functional>
 #include <cassert>
 #include <cstddef>
+#include <memory>
 #include <utility>
 
 namespace hvostov {
@@ -35,7 +37,7 @@ namespace hvostov {
   private:
     friend class List< T >;
     detail::Node< T >* curr_;
-    Liter(detail::Node< T >* n);
+    Liter(detail::Node< T >* n) noexcept;
   };
 
   template< class T >
@@ -55,8 +57,8 @@ namespace hvostov {
 
   private:
     friend class List< T >;
-    detail::Node< T >* curr_;
-    LCiter(detail::Node< T >* n);
+    const detail::Node< T >* curr_;
+    LCiter(const detail::Node< T >* n) noexcept;
   };
 
   template< class T >
@@ -92,17 +94,23 @@ namespace hvostov {
     bool empty() const noexcept;
     size_t size() const noexcept;
 
-    void splice(LCiter< T > pos, List< T >& other);
-    void splice(LCiter< T > pos, List< T >&& other);
-    void splice(LCiter< T > pos, List< T >& other, LCiter< T > it);
-    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > it);
-    void splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last);
-    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last);
+    void splice(LCiter< T > pos, List< T >& other) noexcept;
+    void splice(LCiter< T > pos, List< T >&& other) noexcept;
+    void splice(LCiter< T > pos, List< T >& other, LCiter< T > it) noexcept;
+    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > it) noexcept;
+    void splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last) noexcept;
+    void splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last) noexcept;
 
     void sort();
+    template< class Compare >
+    void sort(Compare comp);
 
     void merge(List< T >& other);
     void merge(List< T >&& other);
+    template< class Compare >
+    void merge(List< T >& other, Compare comp);
+    template< class Compare >
+    void merge(List< T >&& other, Compare comp);
 
     template< class Cond >
     void partition(Cond pred);
@@ -150,16 +158,14 @@ void hvostov::List< T >::rmFake() noexcept
 }
 
 template< class T >
-hvostov::Liter< T >::Liter(detail::Node< T >* n):
+hvostov::Liter< T >::Liter(detail::Node< T >* n) noexcept:
   curr_(n)
-{
-}
+{}
 
 template< class T >
-hvostov::LCiter< T >::LCiter(detail::Node< T >* n):
+hvostov::LCiter< T >::LCiter(const detail::Node< T >* n) noexcept:
   curr_(n)
-{
-}
+{}
 
 template< class T >
 void hvostov::List< T >::swap(List< T >& list) noexcept
@@ -215,8 +221,7 @@ template< class T >
 hvostov::List< T >::List(List< T >&& list) noexcept:
   fake_(std::exchange(list.fake_, nullptr)),
   size_(std::exchange(list.size_, 0))
-{
-}
+{}
 
 template< class T >
 hvostov::List< T >::~List()
@@ -228,7 +233,7 @@ hvostov::List< T >::~List()
 template< class T >
 hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
 {
-  assert(this != &list && "self-assignment detected");
+  assert(this != std::addressof(list) && "self-assignment detected");
   List< T > cpy(list);
   swap(cpy);
   return *this;
@@ -237,12 +242,11 @@ hvostov::List< T >& hvostov::List< T >::operator=(const List< T >& list)
 template< class T >
 hvostov::List< T >& hvostov::List< T >::operator=(List< T >&& list) noexcept
 {
-  assert(this != &list && "self-assignment detected");
+  assert(this != std::addressof(list) && "self-assignment detected");
   clear();
   rmFake();
-  fake_ = list.fake_;
-  list.fake_ = nullptr;
-  size_ = list.size_;
+  List< T > temp(std::move(list));
+  swap(temp);
   return *this;
 }
 
@@ -270,7 +274,7 @@ hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, const T
 template< class T >
 hvostov::Liter< T > hvostov::List< T >::insertAfter(const Liter< T > it, T&& val)
 {
-  detail::Node< T >* n = new detail::Node< T >{val, it.curr_->next};
+  detail::Node< T >* n = new detail::Node< T >{std::forward< T >(val), it.curr_->next};
   it.curr_->next = n;
   size_++;
   return {n};
@@ -285,7 +289,7 @@ void hvostov::List< T >::pushFront(const T& val)
 template< class T >
 void hvostov::List< T >::pushFront(T&& val)
 {
-  insertAfter(fake_, val);
+  insertAfter(fake_, std::forward< T >(val));
 }
 
 template< class T >
@@ -430,7 +434,7 @@ bool hvostov::LCiter< T >::operator!=(const LCiter< T >& lciter) const noexcept
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other) noexcept
 {
   if (other.empty() || this == &other) {
     return;
@@ -440,7 +444,7 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
   while (other_last->next != other.fake_) {
     other_last = other_last->next;
   }
-  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* pos_node = const_cast< detail::Node< T >* >(pos.curr_);
   detail::Node< T >* before_pos = fake_;
   if (pos_node == fake_->next) {
     before_pos = fake_;
@@ -458,24 +462,24 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other)
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other) noexcept
 {
   splice(pos, other);
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > it)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > it) noexcept
 {
   if (this == &other || other.empty()) {
     return;
   }
-  detail::Node< T >* node_after_it = it.curr_->next;
-  if (node_after_it == other.fake_) {
+  detail::Node< T >* node_to_move = const_cast< detail::Node< T >* >(it.curr_->next);
+  if (node_to_move == other.fake_) {
     return;
   }
-  it.curr_->next = node_after_it->next;
+  const_cast< detail::Node< T >* >(it.curr_)->next = node_to_move->next;
   other.size_--;
-  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* pos_node = const_cast< detail::Node< T >* >(pos.curr_);
   detail::Node< T >* before_pos = fake_;
   if (pos_node == fake_->next) {
     before_pos = fake_;
@@ -485,19 +489,19 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > i
       before_pos = before_pos->next;
     }
   }
-  node_after_it->next = pos_node;
-  before_pos->next = node_after_it;
+  node_to_move->next = pos_node;
+  before_pos->next = node_to_move;
   size_++;
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > it)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > it) noexcept
 {
   splice(pos, other, it);
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > first, LCiter< T > last) noexcept
 {
   if (this == &other || other.empty() || first.curr_ == last.curr_) {
     return;
@@ -505,26 +509,26 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > f
   detail::Node< T >* before_first = other.fake_;
   if (first.curr_ != other.fake_->next) {
     before_first = other.fake_->next;
-    while (before_first->next != first.curr_) {
+    while (before_first->next != const_cast< detail::Node< T >* >(first.curr_)) {
       before_first = before_first->next;
     }
   }
   size_t count = 0;
-  detail::Node< T >* temp = first.curr_;
-  while (temp != last.curr_ && temp != other.fake_) {
+  detail::Node< T >* temp = const_cast< detail::Node< T >* >(first.curr_);
+  while (temp != const_cast< detail::Node< T >* >(last.curr_) && temp != other.fake_) {
     temp = temp->next;
     count++;
   }
   if (count == 0) {
     return;
   }
-  detail::Node< T >* range_last = first.curr_;
+  detail::Node< T >* range_last = const_cast< detail::Node< T >* >(first.curr_);
   for (size_t i = 1; i < count; ++i) {
     range_last = range_last->next;
   }
-  before_first->next = last.curr_;
+  before_first->next = const_cast< detail::Node< T >* >(last.curr_);
   other.size_ -= count;
-  detail::Node< T >* pos_node = pos.curr_;
+  detail::Node< T >* pos_node = const_cast< detail::Node< T >* >(pos.curr_);
   detail::Node< T >* before_pos = fake_;
   if (pos_node == fake_->next) {
     before_pos = fake_;
@@ -535,18 +539,25 @@ void hvostov::List< T >::splice(LCiter< T > pos, List< T >& other, LCiter< T > f
     }
   }
   range_last->next = pos_node;
-  before_pos->next = first.curr_;
+  before_pos->next = const_cast< detail::Node< T >* >(first.curr_);
   size_ += count;
 }
 
 template< class T >
-void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last)
+void hvostov::List< T >::splice(LCiter< T > pos, List< T >&& other, LCiter< T > first, LCiter< T > last) noexcept
 {
   splice(pos, other, first, last);
 }
 
 template< class T >
 void hvostov::List< T >::sort()
+{
+  sort(std::less< T >());
+}
+
+template< class T >
+template< class Compare >
+void hvostov::List< T >::sort(Compare comp)
 {
   if (size_ <= 1) {
     return;
@@ -558,64 +569,27 @@ void hvostov::List< T >::sort()
     slow = slow->next;
     fast = fast->next->next;
   }
-  List< T > left;
-  List< T > right;
-  left.fake_->next = fake_->next;
-  detail::Node< T >* left_end = slow;
-  detail::Node< T >* right_start = slow->next;
-  left_end->next = left.fake_;
-  left.size_ = (size_ + 1) / 2;
-  right.fake_->next = right_start;
-  detail::Node< T >* right_end = right_start;
 
+  List< T > right;
+  right.fake_->next = slow->next;
+  detail::Node< T >* right_end = right.fake_->next;
   while (right_end->next != fake_) {
     right_end = right_end->next;
   }
   right_end->next = right.fake_;
   right.size_ = size_ / 2;
-  fake_->next = fake_;
-  size_ = 0;
-  left.sort();
-  right.sort();
-  detail::Node< T >* l = left.fake_->next;
-  detail::Node< T >* r = right.fake_->next;
-  detail::Node< T >* cur = fake_;
 
-  while (l != left.fake_ && r != right.fake_) {
-    if (l->val <= r->val) {
-      cur->next = l;
-      l = l->next;
-    } else {
-      cur->next = r;
-      r = r->next;
-    }
-    cur = cur->next;
-    size_++;
-  }
+  slow->next = fake_;
+  size_ = (size_ + 1) / 2;
 
-  while (l != left.fake_) {
-    cur->next = l;
-    l = l->next;
-    cur = cur->next;
-    size_++;
-  }
-
-  while (r != right.fake_) {
-    cur->next = r;
-    r = r->next;
-    cur = cur->next;
-    size_++;
-  }
-
-  cur->next = fake_;
-  left.fake_->next = left.fake_;
-  left.size_ = 0;
-  right.fake_->next = right.fake_;
-  right.size_ = 0;
+  sort(comp);
+  right.sort(comp);
+  merge(right, comp);
 }
 
 template< class T >
-void hvostov::List< T >::merge(List< T >& other)
+template< class Compare >
+void hvostov::List< T >::merge(List< T >& other, Compare comp)
 {
   if (this == &other || other.empty()) {
     return;
@@ -624,33 +598,38 @@ void hvostov::List< T >::merge(List< T >& other)
     swap(other);
     return;
   }
+
   detail::Node< T >* cur = fake_;
-  detail::Node< T >* this_curr = fake_->next;
-  detail::Node< T >* other_curr = other.fake_->next;
+  detail::Node< T >* l = fake_->next;
+  detail::Node< T >* r = other.fake_->next;
   size_t merged_size = 0;
-  while (this_curr != fake_ && other_curr != other.fake_) {
-    if (this_curr->val <= other_curr->val) {
-      cur->next = this_curr;
-      this_curr = this_curr->next;
+
+  while (l != fake_ && r != other.fake_) {
+    if (comp(l->val, r->val)) {
+      cur->next = l;
+      l = l->next;
     } else {
-      cur->next = other_curr;
-      other_curr = other_curr->next;
+      cur->next = r;
+      r = r->next;
     }
     cur = cur->next;
     merged_size++;
   }
-  while (this_curr != fake_) {
-    cur->next = this_curr;
-    this_curr = this_curr->next;
+
+  while (l != fake_) {
+    cur->next = l;
+    l = l->next;
     cur = cur->next;
     merged_size++;
   }
-  while (other_curr != other.fake_) {
-    cur->next = other_curr;
-    other_curr = other_curr->next;
+
+  while (r != other.fake_) {
+    cur->next = r;
+    r = r->next;
     cur = cur->next;
     merged_size++;
   }
+
   cur->next = fake_;
   size_ = merged_size;
   other.fake_->next = other.fake_;
@@ -658,9 +637,22 @@ void hvostov::List< T >::merge(List< T >& other)
 }
 
 template< class T >
+void hvostov::List< T >::merge(List< T >& other)
+{
+  merge(other, std::less< T >());
+}
+
+template< class T >
 void hvostov::List< T >::merge(List< T >&& other)
 {
-  merge(other);
+  merge(other, std::less< T >());
+}
+
+template< class T >
+template< class Compare >
+void hvostov::List< T >::merge(List< T >&& other, Compare comp)
+{
+  merge(other, comp);
 }
 
 template< class T >
