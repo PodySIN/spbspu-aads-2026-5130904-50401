@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include "arifmetic.hpp"
-#include "stack.hpp"
+#include <stack.hpp>
 
 int main(int argc, char** argv)
 {

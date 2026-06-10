@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <string>
-#include "queue.hpp"
+#include <queue.hpp>
 
 namespace hvostov {
   namespace detail {

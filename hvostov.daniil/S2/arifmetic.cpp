@@ -1,7 +1,7 @@
 #include "arifmetic.hpp"
 #include <stdexcept>
 #include "arifmetic_operations.hpp"
-#include "stack.hpp"
+#include <stack.hpp>
 
 bool hvostov::detail::isOperator(const std::string& token)
 {
