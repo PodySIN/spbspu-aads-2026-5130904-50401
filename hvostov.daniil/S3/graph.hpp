@@ -1,12 +1,12 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include "hash_table.hpp"
-#include "sip_hash.hpp"
 #include <cstddef>
 #include <string>
-#include <top-it-vector.hpp>
 #include <utility>
+#include <top-it-vector.hpp>
+#include "hash_table.hpp"
+#include "sip_hash.hpp"
 
 namespace hvostov {
   using edge_key = std::pair< std::string, std::string >;

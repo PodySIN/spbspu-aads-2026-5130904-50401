@@ -1,6 +1,6 @@
 #include "hash_table.hpp"
-#include <boost/test/unit_test.hpp>
 #include <string>
+#include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(hash_table_iterators_suite)
 

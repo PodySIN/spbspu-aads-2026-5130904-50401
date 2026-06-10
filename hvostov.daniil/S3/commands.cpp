@@ -1,8 +1,8 @@
 #include "commands.hpp"
 #include <algorithm>
 #include <stdexcept>
-#include <top-it-vector.hpp>
 #include <utility>
+#include <top-it-vector.hpp>
 
 void sortStrings(hvostov::Vector< std::string >& v)
 {
