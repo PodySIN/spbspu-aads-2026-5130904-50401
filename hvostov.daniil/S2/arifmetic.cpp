@@ -1,11 +1,11 @@
 #include "arifmetic.hpp"
-#include <cctype>
 #include <stdexcept>
 #include "arifmetic_operations.hpp"
+#include "stack.hpp"
 
-bool hvostov::isOperator(const std::string& token)
+bool hvostov::detail::isOperator(const std::string& token)
 {
-  static const std::string operators[] = {"<<", "+", "-", "%", "*", "/"};
+  const std::string operators[] = {"<<", "+", "-", "%", "*", "/"};
   for (size_t i = 0; i < 6; i++) {
     if (token == operators[i]) {
       return true;
@@ -28,13 +28,13 @@ hvostov::Queue< std::string > hvostov::getInfix(const std::string& expression)
       element.push_back(expression[i]);
     }
   }
-  if (element != "") {
+  if (!element.empty()) {
     infix.push(element);
   }
   return infix;
 }
 
-size_t hvostov::getPriority(const std::string& operation)
+size_t hvostov::detail::getPriority(const std::string& operation)
 {
   if (operation == "<<") {
     return 3;
@@ -66,9 +66,9 @@ hvostov::Queue< std::string > hvostov::getPostfix(Queue< std::string >& infix)
       } else {
         throw std::logic_error("Mismatched parentheses!");
       }
-    } else if (isOperator(curr)) {
-      size_t priority = getPriority(curr);
-      while (!operations.empty() && operations.top() != "(" && getPriority(operations.top()) >= priority) {
+    } else if (detail::isOperator(curr)) {
+      size_t priority = detail::getPriority(curr);
+      while (!operations.empty() && operations.top() != "(" && detail::getPriority(operations.top()) >= priority) {
         postfix.push(operations.top());
         operations.pop();
       }
@@ -111,7 +111,7 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
   while (!postfix.empty()) {
     std::string token = postfix.front();
     postfix.pop();
-    if (isOperator(token)) {
+    if (detail::isOperator(token)) {
       if (values.size() < 2) {
         throw std::logic_error("Too few numbers!");
       }
@@ -121,11 +121,7 @@ long long int hvostov::evaluatePostfix(Queue< std::string >& postfix)
       values.pop();
       values.push(calculate(left, token, right));
     } else {
-      try {
-        values.push(std::stoll(token));
-      } catch (const std::exception&) {
-        throw std::logic_error("Invalid number or unknown token: " + token);
-      }
+      values.push(std::stoll(token));
     }
   }
 

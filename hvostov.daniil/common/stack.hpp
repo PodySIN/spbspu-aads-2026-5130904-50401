@@ -1,8 +1,8 @@
 #ifndef STACK_HPP
 #define STACK_HPP
 
-#include "list.hpp"
 #include <cstddef>
+#include "list.hpp"
 
 namespace hvostov {
   template< class T >
@@ -55,7 +55,7 @@ void hvostov::Stack< T >::push(const T& rhs)
 template< class T >
 void hvostov::Stack< T >::push(T&& rhs)
 {
-  list_.insertAfter(list_.end(), rhs);
+  list_.insertAfter(list_.end(), std::forward< T >(rhs));
 }
 
 template< class T >

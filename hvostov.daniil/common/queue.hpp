@@ -70,7 +70,7 @@ void hvostov::Queue< T >::push(const T& rhs)
 template< class T >
 void hvostov::Queue< T >::push(T&& rhs)
 {
-  tail_ = list_.insertAfter(tail_, rhs);
+  tail_ = list_.insertAfter(tail_, std::forward< T >(rhs));
 }
 
 template< class T >
