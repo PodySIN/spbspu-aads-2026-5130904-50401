@@ -60,7 +60,7 @@ namespace hvostov {
 
     void swap(BSTree& other) noexcept;
     void clear() noexcept;
-
+    bool has(const Key& k) const;
     bool empty() const noexcept;
     size_t size() const noexcept;
 
@@ -814,6 +814,12 @@ template< class Key, class Value >
 bool hvostov::BSTConstIterator< Key, Value >::operator!=(const BSTConstIterator& other) const
 {
   return curr_ != other.curr_;
+}
+
+template< class Key, class Value, class Compare >
+bool hvostov::BSTree< Key, Value, Compare >::has(const Key& k) const
+{
+  return findNode(k) != nullptr;
 }
 
 #endif
