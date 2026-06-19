@@ -85,9 +85,7 @@ void hvostov::complementDatasets(std::istream& in, std::ostream& out, DatasetMap
 
   for (auto it = ds1.cbegin(); it != ds1.cend(); ++it) {
     const std::string& key = (*it).data.first;
-    try {
-      ds2.get(key);
-    } catch (const std::runtime_error&) {
+    if (!ds2.has(key)) {
       result.push(key, (*it).data.second);
     }
   }
@@ -119,8 +117,9 @@ void hvostov::intersectDatasets(std::istream& in, std::ostream& out, DatasetMap&
 
   for (auto it = ds1.cbegin(); it != ds1.cend(); ++it) {
     const std::string& key = (*it).data.first;
-    ds2.get(key);
-    result.push(key, (*it).data.second);
+    if (ds2.has(key)) {
+      result.push(key, (*it).data.second);
+    }
   }
 
   datasets[new_dataset] = std::move(result);
@@ -154,9 +153,7 @@ void hvostov::unionDatasets(std::istream& in, std::ostream& out, DatasetMap& dat
 
   for (auto it = ds2.cbegin(); it != ds2.cend(); ++it) {
     const std::string& key = (*it).data.first;
-    try {
-      result.get(key);
-    } catch (const std::runtime_error&) {
+    if (!result.has(key)) {
       result.push(key, (*it).data.second);
     }
   }
