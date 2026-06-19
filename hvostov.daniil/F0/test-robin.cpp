@@ -6,8 +6,6 @@
 
 BOOST_AUTO_TEST_SUITE(robin_hood_hash_table_suite)
 
-// ========== Базовые операции ==========
-
 BOOST_AUTO_TEST_CASE(test_create_empty_table)
 {
   hvostov::RobinHoodHashTable< int, std::string > table;
@@ -77,8 +75,6 @@ BOOST_AUTO_TEST_CASE(test_emplace_default_constructed)
   BOOST_CHECK(table.contains(42));
   BOOST_CHECK_EQUAL(table.at(42), 0);
 }
-
-// ========== Доступ к элементам ==========
 
 BOOST_AUTO_TEST_CASE(test_at_method)
 {
@@ -165,8 +161,6 @@ BOOST_AUTO_TEST_CASE(test_find_modify_value)
   BOOST_CHECK_EQUAL(table.at(1), "new");
 }
 
-// ========== Удаление элементов ==========
-
 BOOST_AUTO_TEST_CASE(test_erase_existing_key)
 {
   hvostov::RobinHoodHashTable< std::string, int > table;
@@ -233,8 +227,6 @@ BOOST_AUTO_TEST_CASE(test_erase_many_elements)
   }
 }
 
-// ========== Robin Hood специфичные тесты ==========
-
 BOOST_AUTO_TEST_CASE(test_robin_hood_ordering)
 {
   hvostov::RobinHoodHashTable< int, int > table(8);
@@ -250,7 +242,6 @@ BOOST_AUTO_TEST_CASE(test_robin_hood_ordering)
 BOOST_AUTO_TEST_CASE(test_robin_hood_probe_sequence)
 {
   hvostov::RobinHoodHashTable< int, int > table(8);
-  // Вставляем элементы, которые вызовут Robin Hood swaps
   for (int i = 0; i < 10; ++i) {
     table.emplace(i * 8, i);
   }
@@ -270,8 +261,6 @@ BOOST_AUTO_TEST_CASE(test_robin_hood_rich_poor_swap)
   BOOST_CHECK(table.contains(4));
   BOOST_CHECK(table.contains(8));
 }
-
-// ========== Rehash и reserve ==========
 
 BOOST_AUTO_TEST_CASE(test_automatic_rehash)
 {
@@ -353,8 +342,6 @@ BOOST_AUTO_TEST_CASE(test_rehash_preserves_robin_hood)
     BOOST_CHECK_EQUAL(table.at(i), i * 10);
   }
 }
-
-// ========== Итераторы ==========
 
 BOOST_AUTO_TEST_CASE(test_iterator_begin_end)
 {
@@ -474,8 +461,6 @@ BOOST_AUTO_TEST_CASE(test_range_based_for_loop)
   BOOST_CHECK_EQUAL(count, table.size());
 }
 
-// ========== Копирование и перемещение ==========
-
 BOOST_AUTO_TEST_CASE(test_copy_constructor)
 {
   hvostov::RobinHoodHashTable< std::string, int > table1;
@@ -556,7 +541,6 @@ BOOST_AUTO_TEST_CASE(test_self_move_assignment)
   hvostov::RobinHoodHashTable< int, int > table;
   table.emplace(1, 10);
 
-  // Само-перемещение через указатель для тестирования
   auto& ref = table;
   table = std::move(ref);
 
@@ -576,8 +560,6 @@ BOOST_AUTO_TEST_CASE(test_swap)
   BOOST_CHECK(!table1.contains("first"));
   BOOST_CHECK(!table2.contains("second"));
 }
-
-// ========== Clear и empty ==========
 
 BOOST_AUTO_TEST_CASE(test_clear)
 {
@@ -611,8 +593,6 @@ BOOST_AUTO_TEST_CASE(test_empty_after_clear)
   BOOST_CHECK(table.begin() == table.end());
 }
 
-// ========== Разные типы ключей ==========
-
 BOOST_AUTO_TEST_CASE(test_string_keys)
 {
   hvostov::RobinHoodHashTable< std::string, int > table;
@@ -642,8 +622,6 @@ BOOST_AUTO_TEST_CASE(test_pointer_keys)
   BOOST_CHECK_EQUAL(table.size(), 3);
   BOOST_CHECK(table.contains(&a));
 }
-
-// ========== Большие объемы данных ==========
 
 BOOST_AUTO_TEST_CASE(test_large_number_of_elements)
 {
@@ -685,8 +663,6 @@ BOOST_AUTO_TEST_CASE(test_rehash_large_table)
     BOOST_CHECK(table.contains(i));
   }
 }
-
-// ========== Граничные случаи ==========
 
 BOOST_AUTO_TEST_CASE(test_empty_table_operations)
 {
@@ -756,8 +732,6 @@ BOOST_AUTO_TEST_CASE(test_rehash_after_erase)
   }
 }
 
-// ========== Initializer list ==========
-
 BOOST_AUTO_TEST_CASE(test_initializer_list)
 {
   hvostov::RobinHoodHashTable< int, std::string > table = {{1, "one"}, {2, "two"}, {3, "three"}};
@@ -772,8 +746,6 @@ BOOST_AUTO_TEST_CASE(test_empty_initializer_list)
   hvostov::RobinHoodHashTable< int, std::string > table = {};
   BOOST_CHECK(table.empty());
 }
-
-// ========== Сложные типы значений ==========
 
 BOOST_AUTO_TEST_CASE(test_vector_value)
 {
@@ -800,8 +772,6 @@ BOOST_AUTO_TEST_CASE(test_unique_ptr_value)
   BOOST_CHECK(table.contains(1));
   BOOST_CHECK_EQUAL(*table.at(1), 42);
 }
-
-// ========== Const корректность ==========
 
 BOOST_AUTO_TEST_CASE(test_const_table_operations)
 {
