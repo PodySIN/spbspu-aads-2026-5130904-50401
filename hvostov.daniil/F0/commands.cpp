@@ -255,19 +255,19 @@ static void autoSave()
 void hvostov::adm::adminMode(std::istream&, std::ostream& out, hvostov::HeroAccount&)
 {
   admin_active = true;
-  out << "\n╔═══════════════════════════════════════╗\n";
-  out << "║           ADMIN MODE ACTIVE           ║\n";
-  out << "╠═══════════════════════════════════════╣\n";
-  out << "║  show-commands                        ║\n";
-  out << "║  create-dungeon <name> <floors>       ║\n";
-  out << "║  generate-dungeon <name> <floors>     ║\n";
-  out << "║  modify-dungeon <name>                ║\n";
-  out << "║  delete-dungeon <name>                ║\n";
-  out << "║  show-dungeon <name>                  ║\n";
-  out << "║  show-dungeons                        ║\n";
-  out << "║  exit-admin-mode                      ║\n";
-  out << "║  exit                                 ║\n";
-  out << "╚═══════════════════════════════════════╝\n";
+  out << "\n╔════════════════════════════════╗\n";
+  out << "║      ADMIN MODE ACTIVE         ║\n";
+  out << "╠════════════════════════════════╣\n";
+  out << "║show-commands                   ║\n";
+  out << "║create-dungeon <name> <floors>  ║\n";
+  out << "║generate-dungeon <name> <floors>║\n";
+  out << "║modify-dungeon <name>           ║\n";
+  out << "║delete-dungeon <name>           ║\n";
+  out << "║show-dungeon <name>             ║\n";
+  out << "║show-dungeons                   ║\n";
+  out << "║exit-admin-mode                 ║\n";
+  out << "║exit                            ║\n";
+  out << "╚════════════════════════════════╝\n";
 }
 
 void hvostov::adm::exitAdminMode(std::istream&, std::ostream& out)
@@ -366,24 +366,26 @@ void hvostov::adm::modifyMode(std::istream& in, std::ostream& out)
   }
 
   modify_active = true;
-  out << "\n╔══════════════════════════════════════════════════════════╗\n";
-  out << "║ MODIFY MODE: " << std::setw(44) << std::left << name << "║\n";
-  out << "╠══════════════════════════════════════════════════════════╣\n";
-  out << "║      show-commands                                       ║\n";
-  out << "║      add-stage <stage>                                   ║\n";
-  out << "║      remove-stage <stage>                                ║\n";
-  out << "║      add-path <stage> [desc]                             ║\n";
-  out << "║      remove-path <stage> <path>                          ║\n";
-  out << "║      show-stage <stage>                                  ║\n";
-  out << "║      show-path <stage> <path>                            ║\n";
-  out << "║      add-monster <st> <p> <type> <lvl>                   ║\n";
-  out << "║      remove-monster <st> <p> <idx>                       ║\n";
-  out << "║      change-reward <st> <p> <common|rare|epic|legendary> ║\n";
-  out << "║      show-monsters                                       ║\n";
-  out << "║      show-dungeon                                        ║\n";
-  out << "║      exit-modify-mode                                    ║\n";
-  out << "║      exit                                                ║\n";
-  out << "╚══════════════════════════════════════════════════════════╝\n";
+  out << "\n╔═══════════════";
+  out << "═════════════════╗\n";
+  out << "║ MODIFY MODE: " << std::setw(18) << std::left << name << "║\n";
+  out << "╠════════════════════════════════╣\n";
+  out << "║show-commands                   ║\n";
+  out << "║add-stage <stage>               ║\n";
+  out << "║remove-stage <stage>            ║\n";
+  out << "║add-path <stage> [desc]         ║\n";
+  out << "║remove-path <stage> <path>      ║\n";
+  out << "║show-stage <stage>              ║\n";
+  out << "║show-path <stage> <path>        ║\n";
+  out << "║add-monster <st> <p> <type> <lv>║\n";
+  out << "║remove-monster <st> <p> <idx>   ║\n";
+  out << "║change-reward <st> <p>          ║\n";
+  out << "║  <common|rare|epic|legendary>  ║\n";
+  out << "║show-monsters                   ║\n";
+  out << "║show-dungeon                    ║\n";
+  out << "║exit-modify-mode                ║\n";
+  out << "║exit                            ║\n";
+  out << "╚════════════════════════════════╝\n";
 }
 
 void hvostov::adm::exitModifyMode(std::istream&, std::ostream& out)

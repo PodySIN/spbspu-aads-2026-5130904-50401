@@ -19,9 +19,13 @@ void hvostov::Game::mainMenu()
 {
   std::cout << "Welcome to terminal hvostov!\n";
   std::cout << "You can start new game or load previous\n";
-  std::cout << "┌─────────────────────────────────────────────────────────────┐\n";
+  std::cout << "┌────────────────────"
+            << "─────────────────────"
+            << "────────────────────┐\n";
   std::cout << "│                   TERMINAL RPG                              │\n";
-  std::cout << "├─────────────────────────────────────────────────────────────┤\n";
+  std::cout << "├────────────────────"
+            << "─────────────────────"
+            << "────────────────────┤\n";
   std::cout << "│  new-account <name>       - Create new account              │\n";
   std::cout << "│  show-accounts            - List all accounts               │\n";
   std::cout << "│  show-account <name>      - Show account info               │\n";
@@ -36,9 +40,10 @@ void hvostov::Game::mainMenu()
   std::cout << "│  admin-mode               - Enter admin mode                │\n";
   std::cout << "│  show-commands            - Show this help                  │\n";
   std::cout << "│  exit                     - Exit game                       │\n";
-  std::cout << "└─────────────────────────────────────────────────────────────┘\n";
+  std::cout << "└────────────────────"
+            << "─────────────────────"
+            << "────────────────────┘\n";
   std::cout << "> ";
-
   RobinHoodHashTable< std::string, hvostov::cmd_t > cmds;
   cmds["new-account"] = hvostov::mmc::newAccount;
   cmds["show-accounts"] = hvostov::mmc::showAccounts;
