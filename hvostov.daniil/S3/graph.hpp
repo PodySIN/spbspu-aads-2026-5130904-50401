@@ -2,6 +2,7 @@
 #define GRAPH_HPP
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 #include <top-it-vector.hpp>
@@ -11,17 +12,14 @@
 namespace hvostov {
   using edge_key = std::pair< std::string, std::string >;
 
-  struct EdgeKeyEqual {
-    bool operator()(const edge_key& a, const edge_key& b) const
-    {
-      return a.first == b.first && a.second == b.second;
-    }
-  };
-
   struct Graph {
+    Vector< std::string > vertices_;
+    HashTable< edge_key, Vector< size_t >, SipHash< edge_key >, std::equal_to< edge_key > > edges_;
+
     Graph() = default;
     ~Graph() = default;
 
+    void swap(Graph& other) noexcept;
     void addVertex(const std::string& v);
     void removeVertex(const std::string& v);
     bool hasVertex(const std::string& v) const;
@@ -29,9 +27,6 @@ namespace hvostov {
     void addEdge(const std::string& from, const std::string& to, size_t w);
     void removeEdge(const std::string& from, const std::string& to, size_t w);
     bool hasEdge(const std::string& from, const std::string& to) const;
-
-    Vector< std::string > vertices_;
-    HashTable< edge_key, Vector< size_t >, SipHash< edge_key >, EdgeKeyEqual > edges_;
   };
 
 }

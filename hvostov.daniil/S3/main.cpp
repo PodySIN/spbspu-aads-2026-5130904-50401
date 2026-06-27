@@ -6,11 +6,13 @@
 #include "hash_table.hpp"
 #include "sip_hash.hpp"
 
-void handleError(std::ostream& out, std::istream& in)
-{
-  out << "<INVALID COMMAND>\n";
-  auto toignore = std::numeric_limits< std::streamsize >::max();
-  in.ignore(toignore, '\n');
+namespace {
+  void handleError(std::ostream& out, std::istream& in)
+  {
+    out << "<INVALID COMMAND>\n";
+    auto toignore = std::numeric_limits< std::streamsize >::max();
+    in.ignore(toignore, '\n');
+  }
 }
 
 int main(int argc, char* argv[])
@@ -38,12 +40,7 @@ int main(int argc, char* argv[])
       input >> from >> to >> weight;
       g.addEdge(from, to, weight);
     }
-    try {
-      graphs.add(graph_name, g);
-    } catch (...) {
-      graphs.rehash();
-      graphs.add(graph_name, g);
-    }
+    graphs.add(graph_name, g);
   }
   input.close();
 
@@ -62,7 +59,7 @@ int main(int argc, char* argv[])
   std::string cmd;
   while (std::cin >> cmd) {
     try {
-      if (cmds.has(cmd)) {
+      if (cmds.contains(cmd)) {
         cmds.at(cmd)(std::cin, std::cout, graphs);
       } else {
         handleError(std::cout, std::cin);
@@ -70,6 +67,7 @@ int main(int argc, char* argv[])
     } catch (const std::exception&) {
       handleError(std::cout, std::cin);
     }
+    std::cout << "\n";
   }
 
   if (!std::cin.eof()) {
