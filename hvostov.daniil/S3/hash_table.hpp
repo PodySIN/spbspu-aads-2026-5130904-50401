@@ -73,6 +73,8 @@ namespace hvostov {
   public:
     using Iterator = HashTableIterator< Key, Value, Hash, Equal >;
     using ConstIterator = HashTableConstIterator< Key, Value, Hash, Equal >;
+    using BucketsUpdater = size_t (*)(size_t);
+    using BucketSizeUpdater = size_t (*)(size_t);
 
     HashTable() = default;
     explicit HashTable(size_t expected_elements);
@@ -94,8 +96,9 @@ namespace hvostov {
     bool contains(const Key& k) const;
     Iterator find(const Key& k);
     ConstIterator find(const Key& k) const;
-    void rehash(size_t new_bucket_count);
     void rehash();
+    void rehash(size_t new_bucket_count);
+    void rehash(size_t new_bucket_count, size_t new_bucket_size);
     void clear() noexcept;
 
     Value& at(const Key& k);
@@ -104,6 +107,19 @@ namespace hvostov {
     bool empty() const noexcept;
     size_t size() const noexcept;
     size_t getCapacity() const noexcept;
+
+    double loadFactor() const noexcept;
+    double averageBucketSize() const noexcept;
+    size_t overflowSize() const noexcept;
+    size_t maxBucketSize() const noexcept;
+    void maxLoadFactor(double mlf);
+    double maxLoadFactor() const noexcept;
+    void maxAverageBucketSize(double max);
+    double maxAverageBucketSize() const noexcept;
+    void maxOverflowSize(size_t mos);
+    size_t maxOverflowSize() const noexcept;
+    void setBucketsUpdater(BucketsUpdater upd);
+    void setBucketSizeUpdater(BucketSizeUpdater upd);
 
     Iterator begin();
     Iterator end();
@@ -121,6 +137,12 @@ namespace hvostov {
     size_t overflow_cap_ = 0;
     size_t overflow_size_ = 0;
     size_t size_ = 0;
+
+    double maxLoadFactor_ = 0.7;
+    double maxAverageBucketSize_ = 4.0;
+    size_t maxOverflowSize_ = 8;
+    BucketsUpdater bucketsUpdater_ = nullptr;
+    BucketSizeUpdater bucketSizeUpdater_ = nullptr;
 
     Hash Hasher_;
     Equal equal_;
@@ -158,7 +180,47 @@ size_t hvostov::HashTable< Key, Value, Hash, Equal >::totalCapacity() const noex
 template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::rehash()
 {
-  rehash(bucket_count_ == 0 ? 16 : bucket_count_ * 2);
+  size_t new_bucket_count = bucket_count_ == 0 ? 16 : bucket_count_ * 2;
+  if (bucketsUpdater_) {
+    new_bucket_count = bucketsUpdater_(bucket_count_);
+  }
+  size_t new_bucket_size = bucket_size_;
+  if (bucketSizeUpdater_) {
+    new_bucket_size = bucketSizeUpdater_(bucket_size_);
+  }
+  rehash(new_bucket_count, new_bucket_size);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
+{
+  rehash(new_bucket_count, bucket_size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count, size_t new_bucket_size)
+{
+  HashTable new_table;
+  new_table.bucket_size_ = new_bucket_size;
+  new_table.maxLoadFactor_ = maxLoadFactor_;
+  new_table.maxAverageBucketSize_ = maxAverageBucketSize_;
+  new_table.maxOverflowSize_ = maxOverflowSize_;
+  new_table.bucketsUpdater_ = bucketsUpdater_;
+  new_table.bucketSizeUpdater_ = bucketSizeUpdater_;
+  new_table.allocate(new_bucket_count);
+  for (size_t b = 0; b < bucket_count_; ++b) {
+    size_t start_idx = b * bucket_size_;
+    for (size_t i = 0; i < bucket_sizes_[b]; ++i) {
+      size_t idx = start_idx + i;
+      new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+    }
+  }
+  size_t overflow_start_idx = overflowStart();
+  for (size_t i = 0; i < overflow_size_; ++i) {
+    size_t idx = overflow_start_idx + i;
+    new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+  }
+  swap(new_table);
 }
 
 template< class Key, class Value, class Hash, class Equal >
@@ -214,6 +276,11 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other)
   overflow_cap_(other.overflow_cap_),
   overflow_size_(other.overflow_size_),
   size_(other.size_),
+  maxLoadFactor_(other.maxLoadFactor_),
+  maxAverageBucketSize_(other.maxAverageBucketSize_),
+  maxOverflowSize_(other.maxOverflowSize_),
+  bucketsUpdater_(other.bucketsUpdater_),
+  bucketSizeUpdater_(other.bucketSizeUpdater_),
   Hasher_(other.Hasher_),
   equal_(other.equal_)
 {
@@ -249,6 +316,11 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& other) noex
   overflow_cap_(std::exchange(other.overflow_cap_, 0)),
   overflow_size_(std::exchange(other.overflow_size_, 0)),
   size_(std::exchange(other.size_, 0)),
+  maxLoadFactor_(other.maxLoadFactor_),
+  maxAverageBucketSize_(other.maxAverageBucketSize_),
+  maxOverflowSize_(other.maxOverflowSize_),
+  bucketsUpdater_(other.bucketsUpdater_),
+  bucketSizeUpdater_(other.bucketSizeUpdater_),
   Hasher_(std::move(other.Hasher_)),
   equal_(std::move(other.equal_))
 {}
@@ -307,6 +379,11 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::swap(HashTable& other) noexc
   std::swap(overflow_cap_, other.overflow_cap_);
   std::swap(overflow_size_, other.overflow_size_);
   std::swap(size_, other.size_);
+  std::swap(maxLoadFactor_, other.maxLoadFactor_);
+  std::swap(maxAverageBucketSize_, other.maxAverageBucketSize_);
+  std::swap(maxOverflowSize_, other.maxOverflowSize_);
+  std::swap(bucketsUpdater_, other.bucketsUpdater_);
+  std::swap(bucketSizeUpdater_, other.bucketSizeUpdater_);
   std::swap(Hasher_, other.Hasher_);
   std::swap(equal_, other.equal_);
 }
@@ -367,8 +444,10 @@ template< class Key, class Value, class Hash, class Equal >
 template< class K, class V >
 void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(K&& k, V&& v)
 {
-  if (bucket_count_ == 0) {
-    throw std::overflow_error("Hash table overflow");
+  if (
+    bucket_count_ == 0 || overflow_size_ >= maxOverflowSize_ || loadFactor() >= maxLoadFactor_ ||
+    averageBucketSize() >= maxAverageBucketSize_) {
+    rehash();
   }
   size_t bucket = Hasher_(k) % bucket_count_;
   size_t& bucket_size = bucket_sizes_[bucket];
@@ -455,27 +534,6 @@ typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::H
 }
 
 template< class Key, class Value, class Hash, class Equal >
-void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
-{
-  HashTable new_table;
-  new_table.bucket_size_ = bucket_size_;
-  new_table.allocate(new_bucket_count);
-  for (size_t b = 0; b < bucket_count_; ++b) {
-    size_t start_idx = b * bucket_size_;
-    for (size_t i = 0; i < bucket_sizes_[b]; ++i) {
-      size_t idx = start_idx + i;
-      new_table.unsafeAdd(data_[idx].first, data_[idx].second);
-    }
-  }
-  size_t overflow_start_idx = overflowStart();
-  for (size_t i = 0; i < overflow_size_; ++i) {
-    size_t idx = overflow_start_idx + i;
-    new_table.unsafeAdd(data_[idx].first, data_[idx].second);
-  }
-  swap(new_table);
-}
-
-template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::clear() noexcept
 {
   delete[] data_;
@@ -524,6 +582,93 @@ template< class Key, class Value, class Hash, class Equal >
 size_t hvostov::HashTable< Key, Value, Hash, Equal >::getCapacity() const noexcept
 {
   return totalCapacity();
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::loadFactor() const noexcept
+{
+  if (bucket_count_ == 0) {
+    return 0.0;
+  }
+  return static_cast< double >(size_) / (bucket_count_ * bucket_size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::averageBucketSize() const noexcept
+{
+  if (bucket_count_ == 0) {
+    return 0.0;
+  }
+  return static_cast< double >(size_) / bucket_count_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::overflowSize() const noexcept
+{
+  return overflow_size_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::maxBucketSize() const noexcept
+{
+  size_t max_size = 0;
+  for (size_t i = 0; i < bucket_count_; ++i) {
+    if (bucket_sizes_[i] > max_size) {
+      max_size = bucket_sizes_[i];
+    }
+  }
+  return max_size;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxLoadFactor(double mlf)
+{
+  if (mlf <= 0.0 || mlf >= 1.0) {
+    throw std::logic_error("maxLoadFactor must be in (0, 1)");
+  }
+  maxLoadFactor_ = mlf;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::maxLoadFactor() const noexcept
+{
+  return maxLoadFactor_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxAverageBucketSize(double max)
+{
+  maxAverageBucketSize_ = max;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::maxAverageBucketSize() const noexcept
+{
+  return maxAverageBucketSize_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxOverflowSize(size_t mos)
+{
+  maxOverflowSize_ = mos;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::maxOverflowSize() const noexcept
+{
+  return maxOverflowSize_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::setBucketsUpdater(BucketsUpdater upd)
+{
+  bucketsUpdater_ = upd;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::setBucketSizeUpdater(BucketSizeUpdater upd)
+{
+  bucketSizeUpdater_ = upd;
 }
 
 template< class Key, class Value, class Hash, class Equal >

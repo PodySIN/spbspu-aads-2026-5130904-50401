@@ -127,16 +127,6 @@ BOOST_AUTO_TEST_CASE(test_clear)
   BOOST_CHECK(!table.contains(1));
 }
 
-BOOST_AUTO_TEST_CASE(test_overflow_throws)
-{
-  hvostov::HashTable< int, int > table(1);
-  size_t cap = table.getCapacity();
-  for (size_t i = 0; i < cap; ++i) {
-    table.add(i, i * 10);
-  }
-  BOOST_CHECK_THROW(table.add(cap, cap * 10), std::overflow_error);
-}
-
 BOOST_AUTO_TEST_CASE(test_rehash)
 {
   hvostov::HashTable< int, int > table(2);
@@ -274,6 +264,282 @@ BOOST_AUTO_TEST_CASE(test_remove_all_elements)
     BOOST_CHECK(result);
   }
   BOOST_CHECK(table.empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_load_factor)
+{
+  hvostov::HashTable< int, int > table(10);
+  BOOST_CHECK(table.loadFactor() >= 0.0);
+  for (int i = 0; i < 5; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.loadFactor() > 0.0);
+}
+
+BOOST_AUTO_TEST_CASE(test_load_factor_empty)
+{
+  hvostov::HashTable< int, int > table;
+  BOOST_CHECK_EQUAL(table.loadFactor(), 0.0);
+}
+
+BOOST_AUTO_TEST_CASE(test_average_bucket_size)
+{
+  hvostov::HashTable< int, int > table(10);
+  BOOST_CHECK(table.averageBucketSize() >= 0.0);
+  for (int i = 0; i < 5; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.averageBucketSize() > 0.0);
+}
+
+BOOST_AUTO_TEST_CASE(test_average_bucket_size_empty)
+{
+  hvostov::HashTable< int, int > table;
+  BOOST_CHECK_EQUAL(table.averageBucketSize(), 0.0);
+}
+
+BOOST_AUTO_TEST_CASE(test_overflow_size)
+{
+  hvostov::HashTable< int, int > table(2);
+  BOOST_CHECK_EQUAL(table.overflowSize(), 0);
+  table.maxLoadFactor(0.99);
+  table.maxAverageBucketSize(100);
+  table.maxOverflowSize(100);
+  size_t cap = table.getCapacity();
+  for (size_t i = 0; i < cap + 5; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.overflowSize() > 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_overflow_size_empty)
+{
+  hvostov::HashTable< int, int > table;
+  BOOST_CHECK_EQUAL(table.overflowSize(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_bucket_size)
+{
+  hvostov::HashTable< int, int > table(4);
+  for (int i = 0; i < 10; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.maxBucketSize() > 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_bucket_size_empty)
+{
+  hvostov::HashTable< int, int > table;
+  BOOST_CHECK_EQUAL(table.maxBucketSize(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_load_factor)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxLoadFactor(0.5);
+  BOOST_CHECK_EQUAL(table.maxLoadFactor(), 0.5);
+  BOOST_CHECK_THROW(table.maxLoadFactor(0.0), std::logic_error);
+  BOOST_CHECK_THROW(table.maxLoadFactor(1.0), std::logic_error);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_average_bucket_size)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxAverageBucketSize(2.5);
+  BOOST_CHECK_EQUAL(table.maxAverageBucketSize(), 2.5);
+}
+
+BOOST_AUTO_TEST_CASE(test_max_overflow_size)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxOverflowSize(2);
+  BOOST_CHECK_EQUAL(table.maxOverflowSize(), 2);
+}
+
+BOOST_AUTO_TEST_CASE(test_set_buckets_updater)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.setBucketsUpdater([](size_t before) { return before == 0 ? 4 : before * 2; });
+  for (int i = 0; i < 20; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.size() == 20);
+  for (int i = 0; i < 20; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_set_bucket_size_updater)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.setBucketSizeUpdater([](size_t before) { return before + 2; });
+  for (int i = 0; i < 30; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK(table.size() == 30);
+  for (int i = 0; i < 30; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_auto_rehash_on_load_factor)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxLoadFactor(0.3);
+  table.maxAverageBucketSize(100);
+  table.maxOverflowSize(100);
+  for (int i = 0; i < 20; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK_EQUAL(table.size(), 20);
+  for (int i = 0; i < 20; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_auto_rehash_on_average_bucket_size)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxLoadFactor(0.99);
+  table.maxAverageBucketSize(2.0);
+  table.maxOverflowSize(100);
+  for (int i = 0; i < 20; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK_EQUAL(table.size(), 20);
+  for (int i = 0; i < 20; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_auto_rehash_on_overflow_size)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxLoadFactor(0.99);
+  table.maxAverageBucketSize(100);
+  table.maxOverflowSize(2);
+  for (int i = 0; i < 20; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK_EQUAL(table.size(), 20);
+  for (int i = 0; i < 20; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_add_remove_add)
+{
+  hvostov::HashTable< std::string, int > table(2);
+  table.add("key", 10);
+  table.remove("key");
+  table.add("key", 20);
+  BOOST_CHECK_EQUAL(table.at("key"), 20);
+  BOOST_CHECK_EQUAL(table.size(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(test_rehash_preserves_elements)
+{
+  hvostov::HashTable< int, int > table(1);
+  for (int i = 0; i < 50; ++i) {
+    table.add(i, i * 10);
+  }
+  table.rehash(100);
+  BOOST_CHECK_EQUAL(table.size(), 50);
+  for (int i = 0; i < 50; ++i) {
+    BOOST_CHECK(table.contains(i));
+    BOOST_CHECK_EQUAL(table.at(i), i * 10);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_copy_empty_table)
+{
+  hvostov::HashTable< int, std::string > table1;
+  hvostov::HashTable< int, std::string > table2(table1);
+  BOOST_CHECK(table2.empty());
+  BOOST_CHECK_EQUAL(table2.size(), 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_move_empty_table)
+{
+  hvostov::HashTable< int, std::string > table1;
+  hvostov::HashTable< int, std::string > table2(std::move(table1));
+  BOOST_CHECK(table2.empty());
+  BOOST_CHECK(table1.empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_self_assignment)
+{
+  hvostov::HashTable< int, int > table(5);
+  table.add(1, 10);
+  table = table;
+  BOOST_CHECK_EQUAL(table.size(), 1);
+  BOOST_CHECK_EQUAL(table.at(1), 10);
+}
+
+BOOST_AUTO_TEST_CASE(test_find_on_empty_table)
+{
+  hvostov::HashTable< int, std::string > table;
+  BOOST_CHECK(table.find(42) == table.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_remove_from_empty_table)
+{
+  hvostov::HashTable< int, std::string > table;
+  BOOST_CHECK(!table.remove(42));
+}
+
+BOOST_AUTO_TEST_CASE(test_contains_on_empty_table)
+{
+  hvostov::HashTable< int, std::string > table;
+  BOOST_CHECK(!table.contains(42));
+}
+
+BOOST_AUTO_TEST_CASE(test_rehash_on_empty_table)
+{
+  hvostov::HashTable< int, int > table;
+  table.rehash(10);
+  BOOST_CHECK(table.empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_clear_empty_table)
+{
+  hvostov::HashTable< int, int > table;
+  table.clear();
+  BOOST_CHECK(table.empty());
+}
+
+BOOST_AUTO_TEST_CASE(test_many_collisions)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.maxLoadFactor(0.9);
+  for (int i = 0; i < 100; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK_EQUAL(table.size(), 100);
+  for (int i = 0; i < 100; ++i) {
+    BOOST_CHECK(table.contains(i));
+    BOOST_CHECK_EQUAL(table.at(i), i);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_get_capacity)
+{
+  hvostov::HashTable< int, int > table(5);
+  BOOST_CHECK(table.getCapacity() > 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_rehash_with_custom_bucket_size)
+{
+  hvostov::HashTable< int, int > table(1);
+  table.rehash(10, 8);
+  BOOST_CHECK(table.getCapacity() > 0);
+  for (int i = 0; i < 50; ++i) {
+    table.add(i, i);
+  }
+  BOOST_CHECK_EQUAL(table.size(), 50);
+  for (int i = 0; i < 50; ++i) {
+    BOOST_CHECK(table.contains(i));
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

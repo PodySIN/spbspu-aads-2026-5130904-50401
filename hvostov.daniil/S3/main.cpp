@@ -6,15 +6,6 @@
 #include "hash_table.hpp"
 #include "sip_hash.hpp"
 
-namespace {
-  void handleError(std::ostream& out, std::istream& in)
-  {
-    out << "<INVALID COMMAND>\n";
-    auto toignore = std::numeric_limits< std::streamsize >::max();
-    in.ignore(toignore, '\n');
-  }
-}
-
 int main(int argc, char* argv[])
 {
   if (argc < 2) {
@@ -44,17 +35,20 @@ int main(int argc, char* argv[])
   }
   input.close();
 
-  using cmd_t = void (*)(std::istream&, std::ostream&, hvostov::GraphTable&);
-  hvostov::HashTable< std::string, cmd_t, hvostov::SipHash< std::string >, std::equal_to< std::string > > cmds(9);
-  cmds.add("graphs", hvostov::graphs);
-  cmds.add("vertexes", hvostov::vertexes);
-  cmds.add("outbound", hvostov::outbound);
-  cmds.add("inbound", hvostov::inbound);
+  hvostov::HashTable< std::string, hvostov::cmd_t, hvostov::SipHash< std::string >, std::equal_to< std::string > > cmds(
+    9);
   cmds.add("bind", hvostov::bind);
   cmds.add("cut", hvostov::cut);
   cmds.add("create", hvostov::create);
   cmds.add("merge", hvostov::merge);
   cmds.add("extract", hvostov::extract);
+
+  hvostov::HashTable< std::string, hvostov::const_cmd_t, hvostov::SipHash< std::string >, std::equal_to< std::string > >
+    constCmds(9);
+  constCmds.add("graphs", hvostov::graphs);
+  constCmds.add("vertexes", hvostov::vertexes);
+  constCmds.add("outbound", hvostov::outbound);
+  constCmds.add("inbound", hvostov::inbound);
 
   std::string cmd;
   while (std::cin >> cmd) {
@@ -62,12 +56,14 @@ int main(int argc, char* argv[])
       if (cmds.contains(cmd)) {
         cmds.at(cmd)(std::cin, std::cout, graphs);
       } else {
-        handleError(std::cout, std::cin);
+        constCmds.at(cmd)(std::cin, std::cout, graphs);
+        std::cout << "\n";
       }
     } catch (const std::exception&) {
-      handleError(std::cout, std::cin);
+      std::cout << "<INVALID COMMAND>\n";
+      auto toignore = std::numeric_limits< std::streamsize >::max();
+      std::cin.ignore(toignore, '\n');
     }
-    std::cout << "\n";
   }
 
   if (!std::cin.eof()) {

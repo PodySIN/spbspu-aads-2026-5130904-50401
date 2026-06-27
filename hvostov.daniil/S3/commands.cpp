@@ -83,7 +83,7 @@ namespace {
   }
 }
 
-void hvostov::graphs(std::istream&, std::ostream& out, hvostov::GraphTable& graphs)
+void hvostov::graphs(std::istream&, std::ostream& out, const GraphTable& graphs)
 {
   if (graphs.size() == 0) {
     return;
@@ -100,7 +100,7 @@ void hvostov::graphs(std::istream&, std::ostream& out, hvostov::GraphTable& grap
   }
 }
 
-void hvostov::vertexes(std::istream& in, std::ostream& out, hvostov::GraphTable& graphs)
+void hvostov::vertexes(std::istream& in, std::ostream& out, const GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
@@ -123,7 +123,7 @@ void hvostov::vertexes(std::istream& in, std::ostream& out, hvostov::GraphTable&
   }
 }
 
-void hvostov::outbound(std::istream& in, std::ostream& out, hvostov::GraphTable& graphs)
+void hvostov::outbound(std::istream& in, std::ostream& out, const GraphTable& graphs)
 {
   std::string graph_name;
   if (!(in >> graph_name)) {
@@ -161,7 +161,7 @@ void hvostov::outbound(std::istream& in, std::ostream& out, hvostov::GraphTable&
   printEdges(out, res);
 }
 
-void hvostov::inbound(std::istream& in, std::ostream& out, hvostov::GraphTable& graphs)
+void hvostov::inbound(std::istream& in, std::ostream& out, const GraphTable& graphs)
 {
   std::string graph_name;
   if (!(in >> graph_name)) {
@@ -199,7 +199,7 @@ void hvostov::inbound(std::istream& in, std::ostream& out, hvostov::GraphTable& 
   printEdges(out, res);
 }
 
-void hvostov::bind(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
+void hvostov::bind(std::istream& in, std::ostream&, GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
@@ -217,7 +217,7 @@ void hvostov::bind(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
   graphs.at(name).addEdge(v1, v2, w);
 }
 
-void hvostov::cut(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
+void hvostov::cut(std::istream& in, std::ostream&, GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
@@ -242,7 +242,7 @@ void hvostov::cut(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
   g.removeEdge(v1, v2, w);
 }
 
-void hvostov::create(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
+void hvostov::create(std::istream& in, std::ostream&, GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
@@ -269,7 +269,7 @@ void hvostov::create(std::istream& in, std::ostream&, hvostov::GraphTable& graph
   graphs.add(name, g);
 }
 
-void hvostov::merge(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
+void hvostov::merge(std::istream& in, std::ostream&, GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
@@ -314,7 +314,7 @@ void hvostov::merge(std::istream& in, std::ostream&, hvostov::GraphTable& graphs
   graphs.add(name, gr3);
 }
 
-void hvostov::extract(std::istream& in, std::ostream&, hvostov::GraphTable& graphs)
+void hvostov::extract(std::istream& in, std::ostream&, GraphTable& graphs)
 {
   std::string name;
   if (!(in >> name)) {
