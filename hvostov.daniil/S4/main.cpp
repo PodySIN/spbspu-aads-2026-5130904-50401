@@ -44,12 +44,8 @@ int main(int argc, char* argv[])
       if (constCmds.has(cmd)) {
         constCmds.at(cmd)(std::cin, std::cout, datasets);
         std::cout << "\n";
-      } else if (cmds.has(cmd)) {
-        cmds.at(cmd)(std::cin, std::cout, datasets);
       } else {
-        std::cout << "<INVALID COMMAND>\n";
-        auto toignore = std::numeric_limits< std::streamsize >::max();
-        std::cin.ignore(toignore, '\n');
+        cmds.at(cmd)(std::cin, std::cout, datasets);
       }
     } catch (const std::exception&) {
       std::cout << "<INVALID COMMAND>\n";
