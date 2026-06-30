@@ -2,10 +2,10 @@
 #define BSTREE_HPP
 
 #include <cstddef>
-#include <memory>
 #include <utility>
 #include <stdexcept>
 #include <functional>
+#include <algorithm>
 
 namespace hvostov {
   namespace detail {
@@ -15,15 +15,14 @@ namespace hvostov {
       Node< Key, Value >* parent;
       Node< Key, Value >* left;
       Node< Key, Value >* right;
-      size_t height = 0;
 
       Node() = default;
       Node(const Key& k, const Value& v, Node* p);
-      Node(const Key& k, Value&& v, Node* p);
+      template< class KeyU, class ValueU >
+      Node(KeyU&& k, ValueU&& v, Node* p);
       ~Node() = default;
     };
   }
-
   template< class Key, class Value >
   class BSTIterator;
 
@@ -40,15 +39,17 @@ namespace hvostov {
     BSTree();
     BSTree(const BSTree& other);
     BSTree(BSTree&& other) noexcept;
+    ~BSTree();
     BSTree& operator=(const BSTree& other);
     BSTree& operator=(BSTree&& other) noexcept;
-    ~BSTree();
 
     void push(const Key& k, const Value& v);
-    void push(const Key& k, Value&& v);
-    Value& get(const Key& k);
-    const Value& get(const Key& k) const;
-    Value drop(const Key& k);
+    template< class ValueU >
+    void push(const Key& k, ValueU&& v);
+    Value& at(const Key& k);
+    const Value& at(const Key& k) const;
+    Value& operator[](const Key& k);
+    size_t erase(const Key& k);
 
     const_iterator rotateLeft(const_iterator it);
     const_iterator rotateRight(const_iterator it);
@@ -79,10 +80,11 @@ namespace hvostov {
     node_t* copy(node_t* other, node_t* parent);
     void clearSubtree(node_t* node) noexcept;
     size_t calcHeight(node_t* node) const;
-    void updateHeightUpwards(node_t* node);
     node_t* findNode(const Key& k) const;
     node_t* minimum(node_t* node) const;
     node_t* maximum(node_t* node) const;
+    template< class ValueU >
+    void pushImpl(const Key& k, ValueU&& v);
   };
 
   template< class Key, class Value >
@@ -95,8 +97,8 @@ namespace hvostov {
     BSTIterator& operator=(BSTIterator&& other) noexcept = default;
     ~BSTIterator() = default;
 
-    detail::Node< Key, Value >& operator*();
-    detail::Node< Key, Value >* operator->();
+    std::pair< const Key, Value >& operator*();
+    std::pair< const Key, Value >* operator->();
 
     BSTIterator& operator++();
     BSTIterator operator++(int);
@@ -123,8 +125,8 @@ namespace hvostov {
     BSTConstIterator& operator=(BSTConstIterator&& other) noexcept = default;
     ~BSTConstIterator() = default;
 
-    const detail::Node< Key, Value >& operator*() const;
-    const detail::Node< Key, Value >* operator->() const;
+    const std::pair< const Key, Value >& operator*() const;
+    const std::pair< const Key, Value >* operator->() const;
 
     BSTConstIterator& operator++();
     BSTConstIterator operator++(int);
@@ -148,17 +150,16 @@ hvostov::detail::Node< Key, Value >::Node(const Key& k, const Value& v, Node* p)
   data(k, v),
   parent(p),
   left(nullptr),
-  right(nullptr),
-  height(0)
+  right(nullptr)
 {}
 
 template< class Key, class Value >
-hvostov::detail::Node< Key, Value >::Node(const Key& k, Value&& v, Node* p):
-  data(k, std::move(v)),
+template< class KeyU, class ValueU >
+hvostov::detail::Node< Key, Value >::Node(KeyU&& k, ValueU&& v, Node* p):
+  data(std::forward< KeyU >(k), std::forward< ValueU >(v)),
   parent(p),
   left(nullptr),
-  right(nullptr),
-  height(0)
+  right(nullptr)
 {}
 
 template< class Key, class Value, class Compare >
@@ -198,10 +199,8 @@ template< class Key, class Value, class Compare >
 hvostov::BSTree< Key, Value, Compare >& hvostov::BSTree< Key, Value, Compare >::operator=(BSTree&& other) noexcept
 {
   if (this != std::addressof(other)) {
-    clear();
-    root_ = std::exchange(other.root_, nullptr);
-    size_ = std::exchange(other.size_, 0);
-    comp_ = std::move(other.comp_);
+    BSTree temp(std::move(other));
+    swap(temp);
   }
   return *this;
 }
@@ -213,117 +212,114 @@ hvostov::BSTree< Key, Value, Compare >::~BSTree()
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::copy(node_t* other,
-                                                                                                      node_t* parent)
+typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::copy(
+  node_t* other,
+  node_t* parent)
 {
   if (!other) {
     return nullptr;
   }
   node_t* new_node = new node_t(other->data.first, other->data.second, parent);
-  new_node->height = other->height;
-  new_node->left = copy(other->left, new_node);
-  new_node->right = copy(other->right, new_node);
+  new_node->left = nullptr;
+  new_node->right = nullptr;
+
+  try {
+    new_node->left = copy(other->left, new_node);
+    new_node->right = copy(other->right, new_node);
+  } catch (...) {
+    clearSubtree(new_node->left);
+    delete new_node;
+    throw;
+  }
   return new_node;
+}
+
+template< class Key, class Value, class Compare >
+template< class ValueU >
+void hvostov::BSTree< Key, Value, Compare >::pushImpl(const Key& k, ValueU&& v)
+{
+  if (!root_) {
+    root_ = new node_t(k, std::forward< ValueU >(v), nullptr);
+    size_ = 1;
+    return;
+  }
+  node_t* current = root_;
+  node_t* parent = nullptr;
+  while (current) {
+    parent = current;
+    if (comp_(k, current->data.first)) {
+      current = current->left;
+    } else if (comp_(current->data.first, k)) {
+      current = current->right;
+    } else {
+      current->data.second = std::forward< ValueU >(v);
+      return;
+    }
+  }
+
+  node_t* new_node = new node_t(k, std::forward< ValueU >(v), parent);
+  if (comp_(k, parent->data.first)) {
+    parent->left = new_node;
+  } else {
+    parent->right = new_node;
+  }
+  size_++;
 }
 
 template< class Key, class Value, class Compare >
 void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, const Value& v)
 {
-  if (!root_) {
-    root_ = new node_t(k, v, nullptr);
-    size_ = 1;
-    root_->height = 1;
-    return;
-  }
-  node_t* current = root_;
-  node_t* parent = nullptr;
-  while (current) {
-    parent = current;
-    if (comp_(k, current->data.first)) {
-      current = current->left;
-    } else if (comp_(current->data.first, k)) {
-      current = current->right;
-    } else {
-      current->data.second = v;
-      return;
-    }
-  }
-
-  node_t* new_node = new node_t(k, v, parent);
-  if (comp_(k, parent->data.first)) {
-    parent->left = new_node;
-  } else {
-    parent->right = new_node;
-  }
-  size_++;
-  updateHeightUpwards(parent);
+  pushImpl(k, v);
 }
 
 template< class Key, class Value, class Compare >
-void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, Value&& v)
+template< class ValueU >
+void hvostov::BSTree< Key, Value, Compare >::push(const Key& k, ValueU&& v)
 {
-  if (!root_) {
-    root_ = new node_t(k, std::move(v), nullptr);
-    size_ = 1;
-    root_->height = 1;
-    return;
-  }
-  node_t* current = root_;
-  node_t* parent = nullptr;
-
-  while (current) {
-    parent = current;
-    if (comp_(k, current->data.first)) {
-      current = current->left;
-    } else if (comp_(current->data.first, k)) {
-      current = current->right;
-    } else {
-      current->data.second = std::move(v);
-      return;
-    }
-  }
-
-  node_t* new_node = new node_t(k, std::move(v), parent);
-  if (comp_(k, parent->data.first)) {
-    parent->left = new_node;
-  } else {
-    parent->right = new_node;
-  }
-  size_++;
-  updateHeightUpwards(parent);
+  pushImpl(k, std::forward< ValueU >(v));
 }
 
 template< class Key, class Value, class Compare >
-Value& hvostov::BSTree< Key, Value, Compare >::get(const Key& k)
+Value& hvostov::BSTree< Key, Value, Compare >::at(const Key& k)
 {
   node_t* node = findNode(k);
   if (!node) {
-    throw std::runtime_error("Key not found");
+    throw std::out_of_range("Key not found");
   }
   return node->data.second;
 }
 
 template< class Key, class Value, class Compare >
-const Value& hvostov::BSTree< Key, Value, Compare >::get(const Key& k) const
+const Value& hvostov::BSTree< Key, Value, Compare >::at(const Key& k) const
 {
   node_t* node = findNode(k);
   if (!node) {
-    throw std::runtime_error("Key not found");
+    throw std::out_of_range("Key not found");
   }
   return node->data.second;
 }
 
 template< class Key, class Value, class Compare >
-Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
+Value& hvostov::BSTree< Key, Value, Compare >::operator[](const Key& k)
+{
+  node_t* node = findNode(k);
+  if (node) {
+    return node->data.second;
+  }
+
+  pushImpl(k, Value{});
+  return findNode(k)->data.second;
+}
+
+template< class Key, class Value, class Compare >
+size_t hvostov::BSTree< Key, Value, Compare >::erase(const Key& k)
 {
   node_t* node = findNode(k);
   if (!node) {
-    throw std::runtime_error("Key not found");
+    return 0;
   }
 
-  Value result = std::move(node->data.second);
   node_t* parent = node->parent;
-  node_t* height_start = parent;
 
   if (!node->left && !node->right) {
     if (parent) {
@@ -350,7 +346,7 @@ Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
     node->right->parent = parent;
     if (parent) {
       if (parent->left == node)
-        parent->right = node->right;
+        parent->left = node->right;
       else
         parent->right = node->right;
     } else {
@@ -359,10 +355,6 @@ Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
     delete node;
   } else {
     node_t* successor = minimum(node->right);
-    height_start = successor->parent;
-    if (height_start == node) {
-      height_start = successor;
-    }
     if (successor->parent != node) {
       successor->parent->left = successor->right;
       if (successor->right) {
@@ -386,13 +378,12 @@ Value hvostov::BSTree< Key, Value, Compare >::drop(const Key& k)
     delete node;
   }
   size_--;
-  updateHeightUpwards(height_start);
-  return result;
+  return 1;
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::rotateLeft(const_iterator it)
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::rotateLeft(
+  const_iterator it)
 {
   node_t* node = it.curr_;
   if (!node || !node->right) {
@@ -416,13 +407,12 @@ hvostov::BSTree< Key, Value, Compare >::rotateLeft(const_iterator it)
   } else {
     root_ = right_child;
   }
-  updateHeightUpwards(node);
   return {right_child};
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::rotateRight(const_iterator it)
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::rotateRight(
+  const_iterator it)
 {
   node_t* node = it.curr_;
   if (!node || !node->left) {
@@ -446,13 +436,12 @@ hvostov::BSTree< Key, Value, Compare >::rotateRight(const_iterator it)
   } else {
     root_ = left_child;
   }
-  updateHeightUpwards(node);
   return {left_child};
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::rotateLargeRight(const_iterator it)
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::rotateLargeRight(
+  const_iterator it)
 {
   node_t* node = it.curr_;
   if (!node) {
@@ -466,8 +455,8 @@ hvostov::BSTree< Key, Value, Compare >::rotateLargeRight(const_iterator it)
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::rotateLargeLeft(const_iterator it)
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::rotateLargeLeft(
+  const_iterator it)
 {
   node_t* node = it.curr_;
   if (!node) {
@@ -483,13 +472,13 @@ hvostov::BSTree< Key, Value, Compare >::rotateLargeLeft(const_iterator it)
 template< class Key, class Value, class Compare >
 size_t hvostov::BSTree< Key, Value, Compare >::height(const_iterator it) const
 {
-  return it.curr_ ? it.curr_->height : 0;
+  return calcHeight(it.curr_);
 }
 
 template< class Key, class Value, class Compare >
 size_t hvostov::BSTree< Key, Value, Compare >::height() const
 {
-  return root_ ? root_->height : 0;
+  return calcHeight(root_);
 }
 
 template< class Key, class Value, class Compare >
@@ -532,6 +521,12 @@ size_t hvostov::BSTree< Key, Value, Compare >::size() const noexcept
 }
 
 template< class Key, class Value, class Compare >
+bool hvostov::BSTree< Key, Value, Compare >::has(const Key& k) const
+{
+  return findNode(k) != nullptr;
+}
+
+template< class Key, class Value, class Compare >
 typename hvostov::BSTree< Key, Value, Compare >::iterator hvostov::BSTree< Key, Value, Compare >::begin()
 {
   return {minimum(root_)};
@@ -556,22 +551,22 @@ typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree<
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::cbegin() const noexcept
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::cbegin()
+  const noexcept
 {
   return {minimum(root_)};
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::const_iterator
-hvostov::BSTree< Key, Value, Compare >::cend() const noexcept
+typename hvostov::BSTree< Key, Value, Compare >::const_iterator hvostov::BSTree< Key, Value, Compare >::cend()
+  const noexcept
 {
   return {nullptr};
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::node_t*
-hvostov::BSTree< Key, Value, Compare >::findNode(const Key& k) const
+typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::findNode(
+  const Key& k) const
 {
   node_t* current = root_;
   while (current) {
@@ -587,8 +582,8 @@ hvostov::BSTree< Key, Value, Compare >::findNode(const Key& k) const
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::node_t*
-hvostov::BSTree< Key, Value, Compare >::minimum(node_t* node) const
+typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::minimum(
+  node_t* node) const
 {
   if (!node) {
     return nullptr;
@@ -600,8 +595,8 @@ hvostov::BSTree< Key, Value, Compare >::minimum(node_t* node) const
 }
 
 template< class Key, class Value, class Compare >
-typename hvostov::BSTree< Key, Value, Compare >::node_t*
-hvostov::BSTree< Key, Value, Compare >::maximum(node_t* node) const
+typename hvostov::BSTree< Key, Value, Compare >::node_t* hvostov::BSTree< Key, Value, Compare >::maximum(
+  node_t* node) const
 {
   if (!node) {
     return nullptr;
@@ -621,30 +616,21 @@ size_t hvostov::BSTree< Key, Value, Compare >::calcHeight(node_t* node) const
   return 1 + std::max(calcHeight(node->left), calcHeight(node->right));
 }
 
-template< class Key, class Value, class Compare >
-void hvostov::BSTree< Key, Value, Compare >::updateHeightUpwards(node_t* node)
-{
-  while (node) {
-    node->height = calcHeight(node);
-    node = node->parent;
-  }
-}
-
 template< class Key, class Value >
 hvostov::BSTIterator< Key, Value >::BSTIterator(detail::Node< Key, Value >* node):
   curr_(node)
 {}
 
 template< class Key, class Value >
-hvostov::detail::Node< Key, Value >& hvostov::BSTIterator< Key, Value >::operator*()
+std::pair< const Key, Value >& hvostov::BSTIterator< Key, Value >::operator*()
 {
-  return *curr_;
+  return curr_->data;
 }
 
 template< class Key, class Value >
-hvostov::detail::Node< Key, Value >* hvostov::BSTIterator< Key, Value >::operator->()
+std::pair< const Key, Value >* hvostov::BSTIterator< Key, Value >::operator->()
 {
-  return curr_;
+  return &(curr_->data);
 }
 
 template< class Key, class Value >
@@ -729,15 +715,15 @@ hvostov::BSTConstIterator< Key, Value >::BSTConstIterator(detail::Node< Key, Val
 {}
 
 template< class Key, class Value >
-const hvostov::detail::Node< Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator*() const
+const std::pair< const Key, Value >& hvostov::BSTConstIterator< Key, Value >::operator*() const
 {
-  return *curr_;
+  return curr_->data;
 }
 
 template< class Key, class Value >
-const hvostov::detail::Node< Key, Value >* hvostov::BSTConstIterator< Key, Value >::operator->() const
+const std::pair< const Key, Value >* hvostov::BSTConstIterator< Key, Value >::operator->() const
 {
-  return curr_;
+  return &(curr_->data);
 }
 
 template< class Key, class Value >
@@ -814,12 +800,6 @@ template< class Key, class Value >
 bool hvostov::BSTConstIterator< Key, Value >::operator!=(const BSTConstIterator& other) const
 {
   return curr_ != other.curr_;
-}
-
-template< class Key, class Value, class Compare >
-bool hvostov::BSTree< Key, Value, Compare >::has(const Key& k) const
-{
-  return findNode(k) != nullptr;
 }
 
 #endif
