@@ -11,10 +11,13 @@
 namespace hvostov {
   using GraphTable = HashTable< std::string, Graph, SipHash< std::string >, std::equal_to< std::string > >;
 
-  void graphs(std::istream& in, std::ostream& out, GraphTable& graphs);
-  void vertexes(std::istream& in, std::ostream& out, GraphTable& graphs);
-  void outbound(std::istream& in, std::ostream& out, GraphTable& graphs);
-  void inbound(std::istream& in, std::ostream& out, GraphTable& graphs);
+  using cmd_t = void (*)(std::istream&, std::ostream&, GraphTable&);
+  using const_cmd_t = void (*)(std::istream&, std::ostream&, const GraphTable&);
+
+  void graphs(std::istream& in, std::ostream& out, const GraphTable& graphs);
+  void vertexes(std::istream& in, std::ostream& out, const GraphTable& graphs);
+  void outbound(std::istream& in, std::ostream& out, const GraphTable& graphs);
+  void inbound(std::istream& in, std::ostream& out, const GraphTable& graphs);
   void bind(std::istream& in, std::ostream& out, GraphTable& graphs);
   void cut(std::istream& in, std::ostream& out, GraphTable& graphs);
   void create(std::istream& in, std::ostream& out, GraphTable& graphs);

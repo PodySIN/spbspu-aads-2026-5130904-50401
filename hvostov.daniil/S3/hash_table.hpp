@@ -1,5 +1,5 @@
-#ifndef HASH_TABLE_HPP
-#define HASH_TABLE_HPP
+#ifndef Hash_TABLE_HPP
+#define Hash_TABLE_HPP
 
 #include <algorithm>
 #include <cmath>
@@ -13,17 +13,18 @@ namespace hvostov {
 
   template< class Key, class Value, class Hash, class Equal >
   class HashTable;
-  template< class Key, class Value >
+
+  template< class Key, class Value, class Hash, class Equal >
   class HashTableConstIterator;
 
-  template< class Key, class Value >
+  template< class Key, class Value, class Hash, class Equal >
   class HashTableIterator {
   public:
     HashTableIterator();
-    HashTableIterator(const HashTableIterator& it);
-    HashTableIterator(HashTableIterator&& it) noexcept;
-    HashTableIterator& operator=(const HashTableIterator& it);
-    HashTableIterator& operator=(HashTableIterator&& it) noexcept;
+    HashTableIterator(const HashTableIterator& it) = default;
+    HashTableIterator(HashTableIterator&& it) noexcept = default;
+    HashTableIterator& operator=(const HashTableIterator& it) = default;
+    HashTableIterator& operator=(HashTableIterator&& it) noexcept = default;
     HashTableIterator& operator++();
     HashTableIterator operator++(int);
     std::pair< const Key, Value >& operator*();
@@ -32,26 +33,24 @@ namespace hvostov {
     bool operator!=(const HashTableIterator& it) const;
 
   private:
-    friend class HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    template< class K, class V, class H, class E >
-    friend class HashTable;
-    friend class HashTableConstIterator< Key, Value >;
-    void* table_;
+    friend class HashTable< Key, Value, Hash, Equal >;
+    friend class HashTableConstIterator< Key, Value, Hash, Equal >;
+    HashTable< Key, Value, Hash, Equal >* table_;
     size_t current_idx_;
 
-    HashTableIterator(void* table, size_t idx);
+    HashTableIterator(HashTable< Key, Value, Hash, Equal >* table, size_t idx);
     void findNextValid();
   };
 
-  template< class Key, class Value >
+  template< class Key, class Value, class Hash, class Equal >
   class HashTableConstIterator {
   public:
     HashTableConstIterator();
-    HashTableConstIterator(const HashTableConstIterator& it);
-    HashTableConstIterator(HashTableConstIterator&& it) noexcept;
-    HashTableConstIterator(const HashTableIterator< Key, Value >& it);
-    HashTableConstIterator& operator=(const HashTableConstIterator& it);
-    HashTableConstIterator& operator=(HashTableConstIterator&& it) noexcept;
+    HashTableConstIterator(const HashTableConstIterator& it) = default;
+    HashTableConstIterator(HashTableConstIterator&& it) noexcept = default;
+    HashTableConstIterator(const HashTableIterator< Key, Value, Hash, Equal >& it);
+    HashTableConstIterator& operator=(const HashTableConstIterator& it) = default;
+    HashTableConstIterator& operator=(HashTableConstIterator&& it) noexcept = default;
     HashTableConstIterator& operator++();
     HashTableConstIterator operator++(int);
     const std::pair< const Key, Value >& operator*() const;
@@ -60,22 +59,22 @@ namespace hvostov {
     bool operator!=(const HashTableConstIterator& it) const;
 
   private:
-    friend class HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    template< class K, class V, class H, class E >
-    friend class HashTable;
+    friend class HashTable< Key, Value, Hash, Equal >;
 
-    const void* table_;
+    const HashTable< Key, Value, Hash, Equal >* table_;
     size_t current_idx_;
 
-    HashTableConstIterator(const void* table, size_t idx);
+    HashTableConstIterator(const HashTable< Key, Value, Hash, Equal >* table, size_t idx);
     void findNextValid();
   };
 
   template< class Key, class Value, class Hash = SipHash< Key >, class Equal = std::equal_to< Key > >
   class HashTable {
   public:
-    using Iterator = HashTableIterator< Key, Value >;
-    using ConstIterator = HashTableConstIterator< Key, Value >;
+    using Iterator = HashTableIterator< Key, Value, Hash, Equal >;
+    using ConstIterator = HashTableConstIterator< Key, Value, Hash, Equal >;
+    using BucketsUpdater = size_t (*)(size_t);
+    using BucketSizeUpdater = size_t (*)(size_t);
 
     HashTable() = default;
     explicit HashTable(size_t expected_elements);
@@ -87,14 +86,19 @@ namespace hvostov {
     HashTable& operator=(HashTable&& other) noexcept;
 
     Value& operator[](const Key& k);
-    const Value& operator[](const Key& k) const;
 
     void swap(HashTable& other) noexcept;
-    void add(const Key& k, const Value& v);
-    Value drop(const Key& k);
-    bool has(const Key& k) const;
-    void rehash(size_t new_bucket_count);
+
+    template< class K, class V >
+    void add(K&& k, V&& v);
+
+    bool remove(const Key& k);
+    bool contains(const Key& k) const;
+    Iterator find(const Key& k);
+    ConstIterator find(const Key& k) const;
     void rehash();
+    void rehash(size_t new_bucket_count);
+    void rehash(size_t new_bucket_count, size_t new_bucket_size);
     void clear() noexcept;
 
     Value& at(const Key& k);
@@ -103,6 +107,19 @@ namespace hvostov {
     bool empty() const noexcept;
     size_t size() const noexcept;
     size_t getCapacity() const noexcept;
+
+    double loadFactor() const noexcept;
+    double averageBucketSize() const noexcept;
+    size_t overflowSize() const noexcept;
+    size_t maxBucketSize() const noexcept;
+    void maxLoadFactor(double mlf);
+    double maxLoadFactor() const noexcept;
+    void maxAverageBucketSize(double max);
+    double maxAverageBucketSize() const noexcept;
+    void maxOverflowSize(size_t mos);
+    size_t maxOverflowSize() const noexcept;
+    void setBucketsUpdater(BucketsUpdater upd);
+    void setBucketSizeUpdater(BucketSizeUpdater upd);
 
     Iterator begin();
     Iterator end();
@@ -121,17 +138,27 @@ namespace hvostov {
     size_t overflow_size_ = 0;
     size_t size_ = 0;
 
-    Hash hasher_;
+    double maxLoadFactor_ = 0.7;
+    double maxAverageBucketSize_ = 4.0;
+    size_t maxOverflowSize_ = 8;
+    BucketsUpdater bucketsUpdater_ = nullptr;
+    BucketSizeUpdater bucketSizeUpdater_ = nullptr;
+
+    Hash Hasher_;
     Equal equal_;
 
-    friend class HashTableIterator< Key, Value >;
-    friend class HashTableConstIterator< Key, Value >;
+    friend class HashTableIterator< Key, Value, Hash, Equal >;
+    friend class HashTableConstIterator< Key, Value, Hash, Equal >;
 
     size_t overflowStart() const noexcept;
     size_t totalCapacity() const noexcept;
 
-    size_t getElementIndex(const Key& k) const;
-    void unsafeAdd(const Key& k, const Value& v);
+    Iterator findIndex(const Key& k);
+    ConstIterator findIndex(const Key& k) const;
+
+    template< class K, class V >
+    void unsafeAdd(K&& k, V&& v);
+
     void removeByIndex(size_t index);
     void allocate(size_t num_buckets);
   };
@@ -153,7 +180,47 @@ size_t hvostov::HashTable< Key, Value, Hash, Equal >::totalCapacity() const noex
 template< class Key, class Value, class Hash, class Equal >
 void hvostov::HashTable< Key, Value, Hash, Equal >::rehash()
 {
-  rehash(bucket_count_ == 0 ? 16 : bucket_count_ * 2);
+  size_t new_bucket_count = bucket_count_ == 0 ? 16 : bucket_count_ * 2;
+  if (bucketsUpdater_) {
+    new_bucket_count = bucketsUpdater_(bucket_count_);
+  }
+  size_t new_bucket_size = bucket_size_;
+  if (bucketSizeUpdater_) {
+    new_bucket_size = bucketSizeUpdater_(bucket_size_);
+  }
+  rehash(new_bucket_count, new_bucket_size);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
+{
+  rehash(new_bucket_count, bucket_size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count, size_t new_bucket_size)
+{
+  HashTable new_table;
+  new_table.bucket_size_ = new_bucket_size;
+  new_table.maxLoadFactor_ = maxLoadFactor_;
+  new_table.maxAverageBucketSize_ = maxAverageBucketSize_;
+  new_table.maxOverflowSize_ = maxOverflowSize_;
+  new_table.bucketsUpdater_ = bucketsUpdater_;
+  new_table.bucketSizeUpdater_ = bucketSizeUpdater_;
+  new_table.allocate(new_bucket_count);
+  for (size_t b = 0; b < bucket_count_; ++b) {
+    size_t start_idx = b * bucket_size_;
+    for (size_t i = 0; i < bucket_sizes_[b]; ++i) {
+      size_t idx = start_idx + i;
+      new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+    }
+  }
+  size_t overflow_start_idx = overflowStart();
+  for (size_t i = 0; i < overflow_size_; ++i) {
+    size_t idx = overflow_start_idx + i;
+    new_table.unsafeAdd(data_[idx].first, data_[idx].second);
+  }
+  swap(new_table);
 }
 
 template< class Key, class Value, class Hash, class Equal >
@@ -186,7 +253,7 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::allocate(size_t num_buckets)
 template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(size_t expected_elements):
   bucket_size_(4),
-  hasher_(),
+  Hasher_(),
   equal_()
 {
   if (expected_elements == 0) {
@@ -209,7 +276,12 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other)
   overflow_cap_(other.overflow_cap_),
   overflow_size_(other.overflow_size_),
   size_(other.size_),
-  hasher_(other.hasher_),
+  maxLoadFactor_(other.maxLoadFactor_),
+  maxAverageBucketSize_(other.maxAverageBucketSize_),
+  maxOverflowSize_(other.maxOverflowSize_),
+  bucketsUpdater_(other.bucketsUpdater_),
+  bucketSizeUpdater_(other.bucketSizeUpdater_),
+  Hasher_(other.Hasher_),
   equal_(other.equal_)
 {
   if (other.bucket_count_ == 0) {
@@ -238,22 +310,20 @@ hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(const HashTable& other)
 template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >::HashTable(HashTable&& other) noexcept:
   bucket_size_(other.bucket_size_),
-  data_(other.data_),
-  bucket_sizes_(other.bucket_sizes_),
-  bucket_count_(other.bucket_count_),
-  overflow_cap_(other.overflow_cap_),
-  overflow_size_(other.overflow_size_),
-  size_(other.size_),
-  hasher_(std::move(other.hasher_)),
+  data_(std::exchange(other.data_, nullptr)),
+  bucket_sizes_(std::exchange(other.bucket_sizes_, nullptr)),
+  bucket_count_(std::exchange(other.bucket_count_, 0)),
+  overflow_cap_(std::exchange(other.overflow_cap_, 0)),
+  overflow_size_(std::exchange(other.overflow_size_, 0)),
+  size_(std::exchange(other.size_, 0)),
+  maxLoadFactor_(other.maxLoadFactor_),
+  maxAverageBucketSize_(other.maxAverageBucketSize_),
+  maxOverflowSize_(other.maxOverflowSize_),
+  bucketsUpdater_(other.bucketsUpdater_),
+  bucketSizeUpdater_(other.bucketSizeUpdater_),
+  Hasher_(std::move(other.Hasher_)),
   equal_(std::move(other.equal_))
-{
-  other.data_ = nullptr;
-  other.bucket_sizes_ = nullptr;
-  other.bucket_count_ = 0;
-  other.overflow_cap_ = 0;
-  other.overflow_size_ = 0;
-  other.size_ = 0;
-}
+{}
 
 template< class Key, class Value, class Hash, class Equal >
 hvostov::HashTable< Key, Value, Hash, Equal >::~HashTable()
@@ -263,8 +333,8 @@ hvostov::HashTable< Key, Value, Hash, Equal >::~HashTable()
 }
 
 template< class Key, class Value, class Hash, class Equal >
-hvostov::HashTable< Key, Value, Hash, Equal >&
-hvostov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& other)
+hvostov::HashTable< Key, Value, Hash, Equal >& hvostov::HashTable< Key, Value, Hash, Equal >::operator=(
+  const HashTable& other)
 {
   if (this == std::addressof(other)) {
     return *this;
@@ -275,47 +345,28 @@ hvostov::HashTable< Key, Value, Hash, Equal >::operator=(const HashTable& other)
 }
 
 template< class Key, class Value, class Hash, class Equal >
-hvostov::HashTable< Key, Value, Hash, Equal >&
-hvostov::HashTable< Key, Value, Hash, Equal >::operator=(HashTable&& other) noexcept
+hvostov::HashTable< Key, Value, Hash, Equal >& hvostov::HashTable< Key, Value, Hash, Equal >::operator=(
+  HashTable&& other) noexcept
 {
   if (this == std::addressof(other)) {
     return *this;
   }
-  delete[] data_;
-  delete[] bucket_sizes_;
-
-  bucket_size_ = other.bucket_size_;
-  data_ = other.data_;
-  bucket_sizes_ = other.bucket_sizes_;
-  bucket_count_ = other.bucket_count_;
-  overflow_cap_ = other.overflow_cap_;
-  overflow_size_ = other.overflow_size_;
-  size_ = other.size_;
-  hasher_ = std::move(other.hasher_);
-  equal_ = std::move(other.equal_);
-
-  other.data_ = nullptr;
-  other.bucket_sizes_ = nullptr;
-  other.bucket_count_ = 0;
-  other.overflow_cap_ = 0;
-  other.overflow_size_ = 0;
-  other.size_ = 0;
+  HashTable tmp(std::move(other));
+  swap(tmp);
   return *this;
 }
 
 template< class Key, class Value, class Hash, class Equal >
 Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k)
 {
-  if (!has(k)) {
-    add(k, Value{});
+  auto it = findIndex(k);
+  if (it == end()) {
+    HashTable temp(*this);
+    temp.unsafeAdd(k, Value{});
+    swap(temp);
+    it = findIndex(k);
   }
-  return at(k);
-}
-
-template< class Key, class Value, class Hash, class Equal >
-const Value& hvostov::HashTable< Key, Value, Hash, Equal >::operator[](const Key& k) const
-{
-  return at(k);
+  return it->second;
 }
 
 template< class Key, class Value, class Hash, class Equal >
@@ -328,52 +379,87 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::swap(HashTable& other) noexc
   std::swap(overflow_cap_, other.overflow_cap_);
   std::swap(overflow_size_, other.overflow_size_);
   std::swap(size_, other.size_);
-  std::swap(hasher_, other.hasher_);
+  std::swap(maxLoadFactor_, other.maxLoadFactor_);
+  std::swap(maxAverageBucketSize_, other.maxAverageBucketSize_);
+  std::swap(maxOverflowSize_, other.maxOverflowSize_);
+  std::swap(bucketsUpdater_, other.bucketsUpdater_);
+  std::swap(bucketSizeUpdater_, other.bucketSizeUpdater_);
+  std::swap(Hasher_, other.Hasher_);
   std::swap(equal_, other.equal_);
 }
 
 template< class Key, class Value, class Hash, class Equal >
-size_t hvostov::HashTable< Key, Value, Hash, Equal >::getElementIndex(const Key& k) const
+typename hvostov::HashTable< Key, Value, Hash, Equal >::Iterator hvostov::HashTable< Key, Value, Hash, Equal >::findIndex(
+  const Key& k)
 {
   if (bucket_count_ == 0) {
-    throw std::out_of_range("Key not found");
+    return end();
   }
-  size_t bucket = hasher_(k) % bucket_count_;
+  size_t bucket = Hasher_(k) % bucket_count_;
   size_t start_idx = bucket * bucket_size_;
   size_t bucket_size = bucket_sizes_[bucket];
   for (size_t i = 0; i < bucket_size; ++i) {
     size_t idx = start_idx + i;
     if (equal_(data_[idx].first, k)) {
-      return idx;
+      return Iterator(this, idx);
     }
   }
   size_t start = overflowStart();
   for (size_t i = 0; i < overflow_size_; ++i) {
     size_t idx = start + i;
     if (equal_(data_[idx].first, k)) {
-      return idx;
+      return Iterator(this, idx);
     }
   }
-  throw std::out_of_range("Key not found");
+  return end();
 }
 
 template< class Key, class Value, class Hash, class Equal >
-void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, const Value& v)
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::
+  findIndex(const Key& k) const
 {
   if (bucket_count_ == 0) {
-    throw std::overflow_error("Hash table overflow");
+    return cend();
   }
-  size_t bucket = hasher_(k) % bucket_count_;
+  size_t bucket = Hasher_(k) % bucket_count_;
+  size_t start_idx = bucket * bucket_size_;
+  size_t bucket_size = bucket_sizes_[bucket];
+  for (size_t i = 0; i < bucket_size; ++i) {
+    size_t idx = start_idx + i;
+    if (equal_(data_[idx].first, k)) {
+      return ConstIterator(this, idx);
+    }
+  }
+  size_t start = overflowStart();
+  for (size_t i = 0; i < overflow_size_; ++i) {
+    size_t idx = start + i;
+    if (equal_(data_[idx].first, k)) {
+      return ConstIterator(this, idx);
+    }
+  }
+  return cend();
+}
+
+template< class Key, class Value, class Hash, class Equal >
+template< class K, class V >
+void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(K&& k, V&& v)
+{
+  if (
+    bucket_count_ == 0 || overflow_size_ >= maxOverflowSize_ || loadFactor() >= maxLoadFactor_ ||
+    averageBucketSize() >= maxAverageBucketSize_) {
+    rehash();
+  }
+  size_t bucket = Hasher_(k) % bucket_count_;
   size_t& bucket_size = bucket_sizes_[bucket];
 
   if (bucket_size < bucket_size_) {
     size_t idx = bucket * bucket_size_ + bucket_size;
-    data_[idx] = std::make_pair(k, v);
+    data_[idx] = std::make_pair(std::forward< K >(k), std::forward< V >(v));
     bucket_size++;
     size_++;
   } else if (overflow_size_ < overflow_cap_) {
     size_t idx = overflowStart() + overflow_size_;
-    data_[idx] = std::make_pair(k, v);
+    data_[idx] = std::make_pair(std::forward< K >(k), std::forward< V >(v));
     overflow_size_++;
     size_++;
   } else {
@@ -382,13 +468,15 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::unsafeAdd(const Key& k, cons
 }
 
 template< class Key, class Value, class Hash, class Equal >
-void hvostov::HashTable< Key, Value, Hash, Equal >::add(const Key& k, const Value& v)
+template< class K, class V >
+void hvostov::HashTable< Key, Value, Hash, Equal >::add(K&& k, V&& v)
 {
   HashTable temp(*this);
-  try {
-    temp.data_[temp.getElementIndex(k)].second = v;
-  } catch (const std::out_of_range& e) {
-    temp.unsafeAdd(k, v);
+  auto it = temp.findIndex(k);
+  if (it != temp.end()) {
+    it->second = std::forward< V >(v);
+  } else {
+    temp.unsafeAdd(std::forward< K >(k), std::forward< V >(v));
   }
   swap(temp);
 }
@@ -413,46 +501,36 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::removeByIndex(size_t index)
 }
 
 template< class Key, class Value, class Hash, class Equal >
-Value hvostov::HashTable< Key, Value, Hash, Equal >::drop(const Key& k)
+bool hvostov::HashTable< Key, Value, Hash, Equal >::remove(const Key& k)
 {
-  size_t idx = getElementIndex(k);
-  Value val = data_[idx].second;
-  HashTable temp(*this);
-  temp.removeByIndex(idx);
-  swap(temp);
-  return val;
-}
-
-template< class Key, class Value, class Hash, class Equal >
-bool hvostov::HashTable< Key, Value, Hash, Equal >::has(const Key& k) const
-{
-  try {
-    getElementIndex(k);
-    return true;
-  } catch (const std::out_of_range&) {
+  auto it = findIndex(k);
+  if (it == end()) {
     return false;
   }
+  HashTable temp(*this);
+  temp.removeByIndex(it.current_idx_);
+  swap(temp);
+  return true;
 }
 
 template< class Key, class Value, class Hash, class Equal >
-void hvostov::HashTable< Key, Value, Hash, Equal >::rehash(size_t new_bucket_count)
+bool hvostov::HashTable< Key, Value, Hash, Equal >::contains(const Key& k) const
 {
-  HashTable new_table;
-  new_table.bucket_size_ = bucket_size_;
-  new_table.allocate(new_bucket_count);
-  for (size_t b = 0; b < bucket_count_; ++b) {
-    size_t start_idx = b * bucket_size_;
-    for (size_t i = 0; i < bucket_sizes_[b]; ++i) {
-      size_t idx = start_idx + i;
-      new_table.unsafeAdd(data_[idx].first, data_[idx].second);
-    }
-  }
-  size_t overflow_start_idx = overflowStart();
-  for (size_t i = 0; i < overflow_size_; ++i) {
-    size_t idx = overflow_start_idx + i;
-    new_table.unsafeAdd(data_[idx].first, data_[idx].second);
-  }
-  swap(new_table);
+  return findIndex(k) != cend();
+}
+
+template< class Key, class Value, class Hash, class Equal >
+typename hvostov::HashTable< Key, Value, Hash, Equal >::Iterator hvostov::HashTable< Key, Value, Hash, Equal >::find(
+  const Key& k)
+{
+  return findIndex(k);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::find(
+  const Key& k) const
+{
+  return findIndex(k);
 }
 
 template< class Key, class Value, class Hash, class Equal >
@@ -471,14 +549,21 @@ void hvostov::HashTable< Key, Value, Hash, Equal >::clear() noexcept
 template< class Key, class Value, class Hash, class Equal >
 Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k)
 {
-  size_t idx = getElementIndex(k);
-  return data_[idx].second;
+  auto it = findIndex(k);
+  if (it == end()) {
+    throw std::out_of_range("Key not found");
+  }
+  return it->second;
 }
 
 template< class Key, class Value, class Hash, class Equal >
 const Value& hvostov::HashTable< Key, Value, Hash, Equal >::at(const Key& k) const
 {
-  return const_cast< HashTable* >(this)->at(k);
+  auto it = findIndex(k);
+  if (it == cend()) {
+    throw std::out_of_range("Key not found");
+  }
+  return it->second;
 }
 
 template< class Key, class Value, class Hash, class Equal >
@@ -499,14 +584,103 @@ size_t hvostov::HashTable< Key, Value, Hash, Equal >::getCapacity() const noexce
   return totalCapacity();
 }
 
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator():
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::loadFactor() const noexcept
+{
+  if (bucket_count_ == 0) {
+    return 0.0;
+  }
+  return static_cast< double >(size_) / (bucket_count_ * bucket_size_);
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::averageBucketSize() const noexcept
+{
+  if (bucket_count_ == 0) {
+    return 0.0;
+  }
+  return static_cast< double >(size_) / bucket_count_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::overflowSize() const noexcept
+{
+  return overflow_size_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::maxBucketSize() const noexcept
+{
+  size_t max_size = 0;
+  for (size_t i = 0; i < bucket_count_; ++i) {
+    if (bucket_sizes_[i] > max_size) {
+      max_size = bucket_sizes_[i];
+    }
+  }
+  return max_size;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxLoadFactor(double mlf)
+{
+  if (mlf <= 0.0 || mlf >= 1.0) {
+    throw std::logic_error("maxLoadFactor must be in (0, 1)");
+  }
+  maxLoadFactor_ = mlf;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::maxLoadFactor() const noexcept
+{
+  return maxLoadFactor_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxAverageBucketSize(double max)
+{
+  maxAverageBucketSize_ = max;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+double hvostov::HashTable< Key, Value, Hash, Equal >::maxAverageBucketSize() const noexcept
+{
+  return maxAverageBucketSize_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::maxOverflowSize(size_t mos)
+{
+  maxOverflowSize_ = mos;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+size_t hvostov::HashTable< Key, Value, Hash, Equal >::maxOverflowSize() const noexcept
+{
+  return maxOverflowSize_;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::setBucketsUpdater(BucketsUpdater upd)
+{
+  bucketsUpdater_ = upd;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTable< Key, Value, Hash, Equal >::setBucketSizeUpdater(BucketSizeUpdater upd)
+{
+  bucketSizeUpdater_ = upd;
+}
+
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableIterator< Key, Value, Hash, Equal >::HashTableIterator():
   table_(nullptr),
   current_idx_(0)
 {}
 
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t idx):
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableIterator< Key, Value, Hash, Equal >::HashTableIterator(
+  HashTable< Key, Value, Hash, Equal >* table,
+  size_t idx):
   table_(table),
   current_idx_(idx)
 {
@@ -515,72 +689,32 @@ hvostov::HashTableIterator< Key, Value >::HashTableIterator(void* table, size_t 
   }
 }
 
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(const HashTableIterator& it):
-  table_(it.table_),
-  current_idx_(it.current_idx_)
-{}
-
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >::HashTableIterator(HashTableIterator&& it) noexcept:
-  table_(it.table_),
-  current_idx_(it.current_idx_)
-{
-  it.table_ = nullptr;
-  it.current_idx_ = 0;
-}
-
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >&
-hvostov::HashTableIterator< Key, Value >::operator=(const HashTableIterator& it)
-{
-  if (this != &it) {
-    table_ = it.table_;
-    current_idx_ = it.current_idx_;
-  }
-  return *this;
-}
-
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value >&
-hvostov::HashTableIterator< Key, Value >::operator=(HashTableIterator&& it) noexcept
-{
-  if (this != &it) {
-    table_ = it.table_;
-    current_idx_ = it.current_idx_;
-    it.table_ = nullptr;
-    it.current_idx_ = 0;
-  }
-  return *this;
-}
-
-template< class Key, class Value >
-void hvostov::HashTableIterator< Key, Value >::findNextValid()
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTableIterator< Key, Value, Hash, Equal >::findNextValid()
 {
   if (!table_) {
     current_idx_ = 0;
     return;
   }
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  TableType* t = static_cast< TableType* >(table_);
 
-  if (t->size_ == 0) {
-    current_idx_ = t->totalCapacity();
+  if (table_->size_ == 0) {
+    current_idx_ = table_->totalCapacity();
     return;
   }
-  size_t overflow_start = t->overflowStart();
-  size_t total = t->totalCapacity();
+
+  size_t overflow_start = table_->overflowStart();
+  size_t total = table_->totalCapacity();
 
   while (current_idx_ < total) {
     if (current_idx_ < overflow_start) {
-      size_t bucket = current_idx_ / t->bucket_size_;
-      size_t pos_in_bucket = current_idx_ % t->bucket_size_;
-      if (pos_in_bucket < t->bucket_sizes_[bucket]) {
+      size_t bucket = current_idx_ / table_->bucket_size_;
+      size_t pos_in_bucket = current_idx_ % table_->bucket_size_;
+      if (pos_in_bucket < table_->bucket_sizes_[bucket]) {
         return;
       }
-      current_idx_ = (bucket + 1) * t->bucket_size_;
+      current_idx_ = (bucket + 1) * table_->bucket_size_;
     } else {
-      if (current_idx_ < overflow_start + t->overflow_size_) {
+      if (current_idx_ < overflow_start + table_->overflow_size_) {
         return;
       }
       break;
@@ -589,13 +723,12 @@ void hvostov::HashTableIterator< Key, Value >::findNextValid()
   current_idx_ = total;
 }
 
-template< class Key, class Value >
-typename hvostov::HashTableIterator< Key, Value >& hvostov::HashTableIterator< Key, Value >::operator++()
+template< class Key, class Value, class Hash, class Equal >
+typename hvostov::HashTableIterator< Key, Value, Hash, Equal >& hvostov::HashTableIterator< Key, Value, Hash, Equal >::
+operator++()
 {
   if (table_) {
-    using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    TableType* t = static_cast< TableType* >(table_);
-    if (current_idx_ < t->totalCapacity()) {
+    if (current_idx_ < table_->totalCapacity()) {
       current_idx_++;
       findNextValid();
     }
@@ -603,50 +736,49 @@ typename hvostov::HashTableIterator< Key, Value >& hvostov::HashTableIterator< K
   return *this;
 }
 
-template< class Key, class Value >
-hvostov::HashTableIterator< Key, Value > hvostov::HashTableIterator< Key, Value >::operator++(int)
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableIterator< Key, Value, Hash, Equal > hvostov::HashTableIterator< Key, Value, Hash, Equal >::operator++(
+  int)
 {
   HashTableIterator tmp = *this;
   ++(*this);
   return tmp;
 }
 
-template< class Key, class Value >
-std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value >::operator*()
+template< class Key, class Value, class Hash, class Equal >
+std::pair< const Key, Value >& hvostov::HashTableIterator< Key, Value, Hash, Equal >::operator*()
 {
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  TableType* t = static_cast< TableType* >(table_);
-  return reinterpret_cast< std::pair< const Key, Value >& >(t->data_[current_idx_]);
+  return reinterpret_cast< std::pair< const Key, Value >& >(table_->data_[current_idx_]);
 }
 
-template< class Key, class Value >
-std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value >::operator->()
+template< class Key, class Value, class Hash, class Equal >
+std::pair< const Key, Value >* hvostov::HashTableIterator< Key, Value, Hash, Equal >::operator->()
 {
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  TableType* t = static_cast< TableType* >(table_);
-  return reinterpret_cast< std::pair< const Key, Value >* >(&t->data_[current_idx_]);
+  return reinterpret_cast< std::pair< const Key, Value >* >(&table_->data_[current_idx_]);
 }
 
-template< class Key, class Value >
-bool hvostov::HashTableIterator< Key, Value >::operator==(const HashTableIterator& it) const
+template< class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTableIterator< Key, Value, Hash, Equal >::operator==(const HashTableIterator& it) const
 {
   return table_ == it.table_ && current_idx_ == it.current_idx_;
 }
 
-template< class Key, class Value >
-bool hvostov::HashTableIterator< Key, Value >::operator!=(const HashTableIterator& it) const
+template< class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTableIterator< Key, Value, Hash, Equal >::operator!=(const HashTableIterator& it) const
 {
   return !(*this == it);
 }
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator():
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::HashTableConstIterator():
   table_(nullptr),
   current_idx_(0)
 {}
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void* table, size_t idx):
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::HashTableConstIterator(
+  const HashTable< Key, Value, Hash, Equal >* table,
+  size_t idx):
   table_(table),
   current_idx_(idx)
 {
@@ -655,82 +787,41 @@ hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const void
   }
 }
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableConstIterator& it):
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::HashTableConstIterator(
+  const HashTableIterator< Key, Value, Hash, Equal >& it):
   table_(it.table_),
   current_idx_(it.current_idx_)
 {}
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(HashTableConstIterator&& it) noexcept:
-  table_(it.table_),
-  current_idx_(it.current_idx_)
-{
-  it.table_ = nullptr;
-  it.current_idx_ = 0;
-}
-
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >::HashTableConstIterator(const HashTableIterator< Key, Value >& it):
-  table_(it.table_),
-  current_idx_(it.current_idx_)
-{}
-
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >&
-hvostov::HashTableConstIterator< Key, Value >::operator=(const HashTableConstIterator& it)
-{
-  if (this != &it) {
-    table_ = it.table_;
-    current_idx_ = it.current_idx_;
-  }
-  return *this;
-}
-
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >&
-hvostov::HashTableConstIterator< Key, Value >::operator=(HashTableConstIterator&& it) noexcept
-{
-  if (this != &it) {
-    table_ = it.table_;
-    current_idx_ = it.current_idx_;
-    it.table_ = nullptr;
-    it.current_idx_ = 0;
-  }
-  return *this;
-}
-
-template< class Key, class Value >
-void hvostov::HashTableConstIterator< Key, Value >::findNextValid()
+template< class Key, class Value, class Hash, class Equal >
+void hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::findNextValid()
 {
   if (!table_) {
     current_idx_ = 0;
     return;
   }
 
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  const TableType* t = static_cast< const TableType* >(table_);
-
-  if (t->size_ == 0) {
-    current_idx_ = t->totalCapacity();
+  if (table_->size_ == 0) {
+    current_idx_ = table_->totalCapacity();
     return;
   }
 
-  size_t overflow_start = t->overflowStart();
-  size_t total = t->totalCapacity();
+  size_t overflow_start = table_->overflowStart();
+  size_t total = table_->totalCapacity();
 
   while (current_idx_ < total) {
     if (current_idx_ < overflow_start) {
-      size_t bucket = current_idx_ / t->bucket_size_;
-      size_t pos_in_bucket = current_idx_ % t->bucket_size_;
+      size_t bucket = current_idx_ / table_->bucket_size_;
+      size_t pos_in_bucket = current_idx_ % table_->bucket_size_;
 
-      if (pos_in_bucket < t->bucket_sizes_[bucket]) {
+      if (pos_in_bucket < table_->bucket_sizes_[bucket]) {
         return;
       }
 
-      current_idx_ = (bucket + 1) * t->bucket_size_;
+      current_idx_ = (bucket + 1) * table_->bucket_size_;
     } else {
-      if (current_idx_ < overflow_start + t->overflow_size_) {
+      if (current_idx_ < overflow_start + table_->overflow_size_) {
         return;
       }
       break;
@@ -740,13 +831,12 @@ void hvostov::HashTableConstIterator< Key, Value >::findNextValid()
   current_idx_ = total;
 }
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value >& hvostov::HashTableConstIterator< Key, Value >::operator++()
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableConstIterator< Key, Value, Hash, Equal >& hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::
+operator++()
 {
   if (table_) {
-    using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-    const TableType* t = static_cast< const TableType* >(table_);
-    if (current_idx_ < t->totalCapacity()) {
+    if (current_idx_ < table_->totalCapacity()) {
       current_idx_++;
       findNextValid();
     }
@@ -754,38 +844,35 @@ hvostov::HashTableConstIterator< Key, Value >& hvostov::HashTableConstIterator< 
   return *this;
 }
 
-template< class Key, class Value >
-hvostov::HashTableConstIterator< Key, Value > hvostov::HashTableConstIterator< Key, Value >::operator++(int)
+template< class Key, class Value, class Hash, class Equal >
+hvostov::HashTableConstIterator< Key, Value, Hash, Equal > hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::
+operator++(int)
 {
   HashTableConstIterator tmp = *this;
   ++(*this);
   return tmp;
 }
 
-template< class Key, class Value >
-const std::pair< const Key, Value >& hvostov::HashTableConstIterator< Key, Value >::operator*() const
+template< class Key, class Value, class Hash, class Equal >
+const std::pair< const Key, Value >& hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::operator*() const
 {
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  const TableType* t = static_cast< const TableType* >(table_);
-  return reinterpret_cast< const std::pair< const Key, Value >& >(t->data_[current_idx_]);
+  return reinterpret_cast< const std::pair< const Key, Value >& >(table_->data_[current_idx_]);
 }
 
-template< class Key, class Value >
-const std::pair< const Key, Value >* hvostov::HashTableConstIterator< Key, Value >::operator->() const
+template< class Key, class Value, class Hash, class Equal >
+const std::pair< const Key, Value >* hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::operator->() const
 {
-  using TableType = HashTable< Key, Value, SipHash< Key >, std::equal_to< Key > >;
-  const TableType* t = static_cast< const TableType* >(table_);
-  return reinterpret_cast< const std::pair< const Key, Value >* >(&t->data_[current_idx_]);
+  return reinterpret_cast< const std::pair< const Key, Value >* >(&table_->data_[current_idx_]);
 }
 
-template< class Key, class Value >
-bool hvostov::HashTableConstIterator< Key, Value >::operator==(const HashTableConstIterator& it) const
+template< class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::operator==(const HashTableConstIterator& it) const
 {
   return table_ == it.table_ && current_idx_ == it.current_idx_;
 }
 
-template< class Key, class Value >
-bool hvostov::HashTableConstIterator< Key, Value >::operator!=(const HashTableConstIterator& it) const
+template< class Key, class Value, class Hash, class Equal >
+bool hvostov::HashTableConstIterator< Key, Value, Hash, Equal >::operator!=(const HashTableConstIterator& it) const
 {
   return !(*this == it);
 }
@@ -803,29 +890,29 @@ typename hvostov::HashTable< Key, Value, Hash, Equal >::Iterator hvostov::HashTa
 }
 
 template< class Key, class Value, class Hash, class Equal >
-typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
-hvostov::HashTable< Key, Value, Hash, Equal >::begin() const
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::
+  begin() const
 {
   return ConstIterator(this, 0);
 }
 
 template< class Key, class Value, class Hash, class Equal >
-typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
-hvostov::HashTable< Key, Value, Hash, Equal >::end() const
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::end()
+  const
 {
   return ConstIterator(this, totalCapacity());
 }
 
 template< class Key, class Value, class Hash, class Equal >
-typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
-hvostov::HashTable< Key, Value, Hash, Equal >::cbegin() const
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::
+  cbegin() const
 {
   return ConstIterator(this, 0);
 }
 
 template< class Key, class Value, class Hash, class Equal >
-typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator
-hvostov::HashTable< Key, Value, Hash, Equal >::cend() const
+typename hvostov::HashTable< Key, Value, Hash, Equal >::ConstIterator hvostov::HashTable< Key, Value, Hash, Equal >::
+  cend() const
 {
   return ConstIterator(this, totalCapacity());
 }

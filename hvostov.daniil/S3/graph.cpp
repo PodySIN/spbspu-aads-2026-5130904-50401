@@ -12,22 +12,24 @@ void hvostov::Graph::addVertex(const std::string& v)
 
 void hvostov::Graph::removeVertex(const std::string& v)
 {
-  for (size_t i = 0; i < vertices_.size(); ++i) {
-    if (vertices_[i] == v) {
-      vertices_.erase(i);
+  Graph temp(*this);
+  for (size_t i = 0; i < temp.vertices_.size(); ++i) {
+    if (temp.vertices_[i] == v) {
+      temp.vertices_.erase(i);
       break;
     }
   }
 
   Vector< edge_key > to_remove;
-  for (auto it = edges_.begin(); it != edges_.end(); ++it) {
+  for (auto it = temp.edges_.begin(); it != temp.edges_.end(); ++it) {
     if ((*it).first.first == v || (*it).first.second == v) {
       to_remove.pushBack((*it).first);
     }
   }
   for (size_t i = 0; i < to_remove.size(); ++i) {
-    edges_.drop(to_remove[i]);
+    temp.edges_.remove(to_remove[i]);
   }
+  swap(temp);
 }
 
 bool hvostov::Graph::hasVertex(const std::string& v) const
@@ -42,33 +44,32 @@ bool hvostov::Graph::hasVertex(const std::string& v) const
 
 void hvostov::Graph::addEdge(const std::string& from, const std::string& to, size_t w)
 {
-  addVertex(from);
-  addVertex(to);
+  Graph temp(*this);
+  temp.addVertex(from);
+  temp.addVertex(to);
   edge_key key(from, to);
-  if (!edges_.has(key)) {
-    try {
-      edges_.add(key, Vector< size_t >());
-    } catch (const std::overflow_error&) {
-      edges_.rehash();
-      edges_.add(key, Vector< size_t >());
-    }
+  if (!temp.edges_.contains(key)) {
+    temp.edges_.add(key, Vector< size_t >());
   }
-  edges_.at(key).pushBack(w);
+  temp.edges_.at(key).pushBack(w);
+  swap(temp);
 }
 
 void hvostov::Graph::removeEdge(const std::string& from, const std::string& to, size_t w)
 {
+  Graph temp(*this);
   edge_key key(from, to);
-  if (!edges_.has(key)) {
+  if (!temp.edges_.contains(key)) {
     throw std::out_of_range("Edge not found");
   }
-  auto& weights = edges_.at(key);
+  Vector< size_t >& weights = temp.edges_.at(key);
   for (size_t i = 0; i < weights.size(); ++i) {
     if (weights[i] == w) {
       weights.erase(i);
       if (weights.size() == 0) {
-        edges_.drop(key);
+        temp.edges_.remove(key);
       }
+      swap(temp);
       return;
     }
   }
@@ -77,5 +78,11 @@ void hvostov::Graph::removeEdge(const std::string& from, const std::string& to, 
 
 bool hvostov::Graph::hasEdge(const std::string& from, const std::string& to) const
 {
-  return edges_.has(edge_key(from, to));
+  return edges_.contains(edge_key(from, to));
+}
+
+void hvostov::Graph::swap(Graph& other) noexcept
+{
+  vertices_.swap(other.vertices_);
+  edges_.swap(other.edges_);
 }
